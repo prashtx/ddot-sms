@@ -65,7 +65,7 @@ function makeArrivalString(arrivals, now) {
     arrivalSets.push(arrivalString);
   });
 
-  return arrivalSets.join('\n');
+  return arrivalSets.join('%0d');
 }
 
 app.post('/', function(req, res){
@@ -111,10 +111,10 @@ app.post('/', function(req, res){
       .then(function (data) {
         // Closest stop
         var message = util.format(Strings.ClosestStop, stops[0].name);
-        message += '\n' + makeArrivalString(data.arrivals, data.now);
+        message += '%0d' + makeArrivalString(data.arrivals, data.now);
 
         // Other stops
-        message += '\r\n' + Strings.OtherCloseStops + '\r\n';
+        message += '%0d' + Strings.OtherCloseStops + '%0d';
 
         var letters = ['A', 'B', 'C'];
         var i;
@@ -122,7 +122,7 @@ app.post('/', function(req, res){
         for (i = 1; i < letters.length && i < stops.length; i += 1) {
           options.push(util.format('%s) %s', letters[i], stops[i].name));
         }
-        message += options.join('\r\n');
+        message += options.join('%0d');
         console.log('Message length: ' + message.length);
         tropo.say(message);
         res.send(tropowebapi.TropoJSON(tropo));
