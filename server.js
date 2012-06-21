@@ -122,7 +122,7 @@ app.post('/', function(req, res){
         var letters = ['A', 'B', 'C'];
         var i;
         var options = [];
-        for (i = 1; i < letters.length && i < stops.length - 1; i += 1) {
+        for (i = 0; i < letters.length && i < stops.length - 1; i += 1) {
           options.push(util.format('%s) %s', letters[i], stops[i + 1].name));
         }
         // TODO: Can we use a newline?
