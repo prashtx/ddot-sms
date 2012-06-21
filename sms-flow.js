@@ -95,7 +95,7 @@ function handleTestCommand(cmd) {
       .map(function (stop) {
         return util.format('%s: %s', stop.id.substring('Detroit Department of Transportation_'.length), stop.name);
       })
-      .join('\r\n');
+      .join(' ');
       def.resolve(message);
     })
     .fail(function (reason) {
