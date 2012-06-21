@@ -6,6 +6,24 @@ var api = require('./ddotapi.js');
 var geocoder = require('./geocoder.js');
 var Strings = require('./strings.js');
 
+var keywords = {
+  test: 'test',
+  near: 'near',
+  routes: 'routes'
+};
+
+function keywordMatches(keyword, str) {
+  function check(kw) {
+    var s = str.trimLeft();
+    return (s.length >= keyword.length &&
+            (s.substring(0, keyword.length).toLocaleLowerCase() ===
+             keyword.toLocaleLowerCase()));
+  }
+  if (util.isArray(keyword)) {
+    return keyword.some(check);
+  }
+  return check(keyword);
+}
 
 // fun(key, value)
 function forEachKey(obj, fun) {
@@ -59,11 +77,68 @@ function makeArrivalString(arrivals, now) {
   return arrivalSets.join(' ');
 }
 
+function handleTestCommand(cmd) {
+  var def = Q.defer();
+
+  console.log('Handling a test command.');
+
+  if (keywordMatches(keywords.near, cmd)) {
+    // Get lon-lat for the specified location
+    geocoder.code(cmd.substring(keywords.near.length), 'Detroit, MI')
+    .then(function (coords) {
+      // Get the nearby stops
+      return api.getStopsForLocation(coords);
+    })
+    .then(function (stops) {
+      var message = 'nearby stops: ';
+      message += stops
+      .map(function (stop) {
+        return util.format('%s: %s', stop.id.substring('Detroit Department of Transportation_'.length), stop.name);
+      })
+      .join('\r\n');
+      def.resolve(message);
+    })
+    .fail(function (reason) {
+      def.reject();
+    });
+  } else if (keywordMatches(keywords.routes, cmd)) {
+    console.log('Getting routes');
+    api.getRoutes()
+    .then(function (routes) {
+      var message = 'Routes:';
+      var i;
+      for (i = 0; i < routes.length; i += 1) {
+        message += ' ' + routes[i].shortName;
+      }
+      def.resolve(message);
+    })
+    .fail(function () { def.reject(); });
+  } else {
+    def.resolve('Did not understand the command');
+  }
+
+  return def.promise;
+}
+
 module.exports = (function () {
   var self = {};
 
   self.respondToSms = function (sms) {
     var def = Q.defer();
+
+
+    // Look for the test keyword.
+    if (keywordMatches(keywords.test, sms)) {
+      handleTestCommand(sms.substring(keywords.test.length))
+      .then(function (msg) {
+        def.resolve(msg);
+      })
+      .fail(function (msg) {
+        def.reject();
+      });
+
+      return def.promise;
+    }
 
     if (!isNaN(parseInt(sms, 10))) {
       // We got numeric text. Treat it as a stop ID.
