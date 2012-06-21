@@ -26,12 +26,20 @@ app.post('/', function (req, res) {
   .then(function (message) {
     //tropo.say(message);
     //res.send(tropowebapi.TropoJSON(tropo));
-    res.send('{"tropo":[{"say":{"value":"each\r\non\r\nnew\r\nline"}}]}');
+    //res.send(encodeURIComponent('{"tropo":[{ "say":{"value":"each\r\non\r\nnew\r\nline"}}]}'));
+    //res.send('{"tropo":[{ "say":{"value":"each on new line"}}]}');
+    res.setHeader('Content-Type', 'application/json');
+    //tropo.say('each\r\non\r\nnew\r\nline');
+    //res.send(tropowebapi.TropoJSON(tropo));
+    res.send(JSON.stringify({tropo: [{say: {value: 'each\r\non\r\nnew\r\nline'}}]}));
   })
   .fail(function (reason) {
     //tropo.say(Strings.GenericFailMessage);
     //res.send(tropowebapi.TropoJSON(tropo));
-    res.send('{"tropo":[{"say":{"value":"each\r\non\r\nnew\r\nline"}}]}');
+    res.setHeader('content-type', 'application/json');
+    //res.send('{"tropo":[{"say":{"value":"each\r\non\r\nnew\r\nline"}}]}');
+    tropo.say('each\r\non\r\nnew\r\nline');
+    res.send(tropowebapi.TropoJSON(tropo));
   });
 });
 
