@@ -189,8 +189,7 @@ module.exports = (function () {
             options.push(util.format('%s) %s', letters[i], stops[i + 1].name));
           }
           // TODO: Can we use a newline?
-          //message += options.join(' ');
-          message += options.join('\r\n');
+          message += options.join(' ');
           console.log('Message length: ' + message.length);
           def.resolve(message);
         });
