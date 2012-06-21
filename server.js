@@ -6,9 +6,10 @@ var tropowebapi = require('tropo-webapi');
 var request = require('request');
 var util = require('util');
 
-var api = require('./ddotapi.js');
-var geocoder = require('./geocoder.js');
 var Strings = require('./strings.js');
+var smsflow = require('./sms-flow.js');
+var geocoder = require('./geocoder.js'); // XXX
+var api = require('./ddotapi.js'); // XXX
 
 var app = express.createServer(express.logger());
 
@@ -17,128 +18,21 @@ app.configure(function() {
 });
 
 
-// fun(key, value)
-function forEachKey(obj, fun) {
-  var key;
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      fun(key, obj[key]);
-    }
-  }
-}
-
-function makeArrivalString(arrivals, now) {
-  if (arrivals.length === 0) {
-    // If there are no arrivals at all, say so.
-    return Strings.NoArrivals;
-  }
-
-  // Organize by headsign, so we can format it for presentation.
-  var headsigns = {};
-  arrivals.forEach(function (entry) {
-    // Times for this headsign
-    var times = headsigns[entry.headsign];
-    if (times === undefined) {
-      times = [];
-      headsigns[entry.headsign] = times;
-    }
-
-    times.push({predicted: entry.predicted, arrival: entry.arrival - now});
-  });
-
-  // Create the output text.
-  var arrivalSets = [];
-  forEachKey(headsigns, function (headsign, times) {
-    // If there are no arrivals for this headsign, skip.
-    if (times.length === 0) { return; }
-
-    var timeString = times.map(function (entry) {
-      // Milliseconds to minutes.
-      var s = Math.floor(entry.arrival / 60000).toString();
-      if (!entry.predicted) {
-        s += ' (sched)';
-      }
-      return s;
-    })
-    .join(', ');
-    var arrivalString = util.format('%s: %s min.', headsign, timeString);
-    arrivalSets.push(arrivalString);
-  });
-
-  // TODO: can we use a newline?
-  return arrivalSets.join(' ');
-}
-
-app.post('/', function(req, res){
-  // Create a new instance of the TropoWebAPI object.
+app.post('/', function (req, res) {
   var tropo = new tropowebapi.TropoWebAPI();
 
   var initialText = req.body.session.initialText.trim();
-
-  if (!isNaN(parseInt(initialText, 10))) {
-    // We got numeric text. Treat it as a stop ID.
-    var index = initialText.indexOf(' ');
-    var stopId;
-    if (index === -1) {
-      stopId = initialText;
-    } else {
-      stopId = initialText.substring(0, index);
-    }
-
-    // Fetch the arrival time info
-    api.getArrivalsForStop(stopId)
-    .then(function (data) {
-      tropo.say(makeArrivalString(data.arrivals, data.now));
-      res.send(tropowebapi.TropoJSON(tropo));
-    })
-    .fail(function (reason) {
-      tropo.say(Strings.GenericFailMessage);
-      res.send(tropowebapi.TropoJSON(tropo));
-    });
-  } else {
-    // Non-numeric. Treat it as a location.
-
-    // Get lon-lat for the specified location
-    geocoder.code(initialText, 'Detroit, MI')
-    .then(function (coords) {
-      // Get the nearby stops
-      return api.getStopsForLocation(coords);
-    })
-    .then(function (stops) {
-      // TODO: handle the case of no stops found.
-
-      // Get arrivals for the nearest stop
-      return api.getArrivalsForStop(stops[0].id)
-      .then(function (data) {
-        // Closest stop
-        var message = util.format(Strings.ClosestStop, stops[0].name);
-        // TODO: can we use a newline?
-        message += ' ' + makeArrivalString(data.arrivals, data.now);
-
-        // Other stops
-        // TODO: can we use a newline?
-        message += ' ' + Strings.OtherCloseStops + ' ';
-
-        var letters = ['A', 'B', 'C'];
-        var i;
-        var options = [];
-        for (i = 0; i < letters.length && i < stops.length - 1; i += 1) {
-          options.push(util.format('%s) %s', letters[i], stops[i + 1].name));
-        }
-        // TODO: Can we use a newline?
-        message += options.join(' ');
-        console.log('Message length: ' + message.length);
-        tropo.say(message);
-        res.send(tropowebapi.TropoJSON(tropo));
-      });
-    })
-    .fail(function (reason) {
-      tropo.say(Strings.GenericFailMessage);
-      res.send(tropowebapi.TropoJSON(tropo));
-    });
-  }
-
+  smsflow.respondToSms(initialText)
+  .then(function (message) {
+    tropo.say(message);
+    res.send(tropowebapi.TropoJSON(tropo));
+  })
+  .fail(function (reason) {
+    tropo.say(Strings.GenericFailMessage);
+    res.send(tropowebapi.TropoJSON(tropo));
+  });
 });
+
 
 app.post('/geocode', function(req, res) {
   geocoder.code(req.body.line1, req.body.line2)
