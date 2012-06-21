@@ -24,12 +24,14 @@ app.post('/', function (req, res) {
   var initialText = req.body.session.initialText.trim();
   smsflow.respondToSms(initialText)
   .then(function (message) {
-    tropo.say(message);
-    res.send(tropowebapi.TropoJSON(tropo));
+    //tropo.say(message);
+    //res.send(tropowebapi.TropoJSON(tropo));
+    res.send('{"tropo":[{"say":{"value":"each\r\non\r\nnew\r\nline"}}]}');
   })
   .fail(function (reason) {
-    tropo.say(Strings.GenericFailMessage);
-    res.send(tropowebapi.TropoJSON(tropo));
+    //tropo.say(Strings.GenericFailMessage);
+    //res.send(tropowebapi.TropoJSON(tropo));
+    res.send('{"tropo":[{"say":{"value":"each\r\non\r\nnew\r\nline"}}]}');
   });
 });
 
