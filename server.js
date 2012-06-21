@@ -6,6 +6,7 @@ var tropowebapi = require('tropo-webapi');
 var request = require('request');
 
 var api = require('./ddotapi.js');
+var geocoder = require('./geocoder.js');
 
 var app = express.createServer(express.logger());
 
@@ -13,17 +14,71 @@ app.configure(function() {
   app.use(express.bodyParser());
 });
 
+
 app.post('/', function(req, res){
   // Create a new instance of the TropoWebAPI object.
   var tropo = new tropowebapi.TropoWebAPI();
-  // Use the say method https://www.tropo.com/docs/webapi/say.htm
-  tropo.say("Welcome to my Tropo Web API node demo.");
-  // Use the on method https://www.tropo.com/docs/webapi/on.htm
-  tropo.on("continue", null, "/one", true);
 
-  res.send(tropowebapi.TropoJSON(tropo));
+  var initialText = req.body.session.initialText;
+  geocoder.code(initialText, 'Detroit, MI')
+  .then(function (coords) {
+    return api.getStopsForLocation(coords);
+  })
+  .then(function (stops) {
+    var message = 'Here are the nearby stops: ';
+    message += stops.map(function (stop) { return stop.name; }).join(', ');
+    tropo.say(message);
+    res.send(tropowebapi.TropoJSON(tropo));
+  })
+  .fail(function (reason) {
+    tropo.say('Sorry, we couldn\'t process your request! Trying something like: woodward and mack');
+    res.send(tropowebapi.TropoJSON(tropo));
+  });
 });
 
+app.post('/geocode', function(req, res) {
+  geocoder.code(req.body.line1, req.body.line2)
+  .then(function (coords) {
+    res.send(JSON.stringify({
+      status: 'success',
+      lat: coords.lat,
+      lon: coords.lon
+    }), 200);
+  }, function (reason) {
+    res.send('{status: error}');
+  });
+});
+
+app.post('/routes', function(req, res) {
+  var tropo = new tropowebapi.TropoWebAPI();
+
+  api.getRoutes().then(
+  function (routes) {
+    var message = 'Routes:';
+    var i;
+    for (i = 0; i < routes.length; i += 1) {
+      message += ' ' + routes[i].shortName;
+    }
+    var pieces = [message];
+    var newPiece;
+    var lastIndex = pieces.length - 1;
+    while (pieces[lastIndex].length > 140) {
+      newPiece = pieces[lastIndex].substring(140);
+      pieces[lastIndex] = pieces[lastIndex].substring(0, 140);
+      pieces.push(newPiece);
+    }
+    for (i = 0; i < pieces.length; i += 1) {
+      tropo.say(pieces[i]);
+    }
+    res.send(tropowebapi.TropoJSON(tropo));
+  },
+  function () {
+    tropo.say('Oops! System error. Please try again in a bit.');
+    res.send(tropowebapi.TropoJSON(tropo));
+  });
+});
+
+/*
 app.post('/one', function(req, res){
   // Create a new instance of the TropoWebAPI object.
   var tropo = new tropowebapi.TropoWebAPI();
@@ -41,6 +96,7 @@ app.post('/two', function(req, res){
 
   res.send(tropowebapi.TropoJSON(tropo));
 });
+*/
 
 
 
