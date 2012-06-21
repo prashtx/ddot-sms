@@ -56,16 +56,17 @@ function makeArrivalString(arrivals, now) {
       // Milliseconds to minutes.
       var s = Math.floor(entry.arrival / 60000).toString();
       if (!entry.predicted) {
-        s += ' (scheduled)';
+        s += ' (sched)';
       }
       return s;
     })
     .join(', ');
-    var arrivalString = util.format('%s: %s minutes', headsign, timeString);
+    var arrivalString = util.format('%s: %s min.', headsign, timeString);
     arrivalSets.push(arrivalString);
   });
 
-  return arrivalSets.join('%0d');
+  // TODO: can we use a newline?
+  return arrivalSets.join(' ');
 }
 
 app.post('/', function(req, res){
@@ -111,18 +112,21 @@ app.post('/', function(req, res){
       .then(function (data) {
         // Closest stop
         var message = util.format(Strings.ClosestStop, stops[0].name);
-        message += '%0d' + makeArrivalString(data.arrivals, data.now);
+        // TODO: can we use a newline?
+        message += ' ' + makeArrivalString(data.arrivals, data.now);
 
         // Other stops
-        message += '%0d' + Strings.OtherCloseStops + '%0d';
+        // TODO: can we use a newline?
+        message += ' ' + Strings.OtherCloseStops + ' ';
 
         var letters = ['A', 'B', 'C'];
         var i;
         var options = [];
-        for (i = 1; i < letters.length && i < stops.length; i += 1) {
-          options.push(util.format('%s) %s', letters[i], stops[i].name));
+        for (i = 1; i < letters.length && i < stops.length - 1; i += 1) {
+          options.push(util.format('%s) %s', letters[i], stops[i + 1].name));
         }
-        message += options.join('%0d');
+        // TODO: Can we use a newline?
+        message += options.join(' ');
         console.log('Message length: ' + message.length);
         tropo.say(message);
         res.send(tropowebapi.TropoJSON(tropo));
