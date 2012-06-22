@@ -31,7 +31,7 @@ module.exports = (function () {
     var def = Q.defer();
     request.get(url.format(urlObj), function(error, resp, body) {
       if (error || resp.statusCode !== 200) {
-        def.reject();
+        def.reject(error || new Error('Received status: ' + resp.statusCode));
         return;
       }
 
