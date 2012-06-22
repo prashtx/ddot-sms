@@ -21,13 +21,16 @@ app.configure(function() {
 app.post('/', function (req, res) {
   var tropo = new tropowebapi.TropoWebAPI();
 
-  var initialText = req.body.session.initialText.trim();
-  smsflow.respondToSms(initialText)
+  var session = req.body.session;
+  var initialText = session.initialText.trim();
+  smsflow.respondToSms(initialText, session.from.id)
   .then(function (message) {
     tropo.say(message);
     res.send(tropowebapi.TropoJSON(tropo));
   })
   .fail(function (reason) {
+    console.log(reason);
+    console.log(reason.stack);
     tropo.say(Strings.GenericFailMessage);
     res.send(tropowebapi.TropoJSON(tropo));
   });

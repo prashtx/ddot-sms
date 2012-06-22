@@ -111,6 +111,23 @@ module.exports = (function () {
     return def.promise;
   };
 
+  // Get stop details by stop ID.
+  self.getStop = function (stopId) {
+    var def = Q.defer();
+
+    request.get(apiUrl('stop', stopId), function (error, resp, body) {
+      if (error || resp.statusCode !== 200) {
+        def.reject();
+        return;
+      }
+
+      var data = JSON.parse(body);
+      def.resolve(data.data.entry);
+    });
+
+    return def.promise;
+  };
+
   // Get arrival info for the specified stop.
   self.getArrivalsForStop = function (stopId) {
     var def = Q.defer();
