@@ -44,12 +44,14 @@ module.exports = (function () {
 
   // Clean the old sessions.
   setInterval(function () {
+    var caller;
     var entry;
     var now = Date.now();
-    for (entry in sessions) {
-      if (sessions.hasOwnProperty(entry)) {
-        if (entry.time + lifetime < now) {
-          delete sessions.entry;
+    for (caller in sessions) {
+      if (sessions.hasOwnProperty(caller)) {
+        entry = sessions[caller];
+        if ((entry.time + lifetime) < now) {
+          delete sessions[caller];
         }
       }
     }
