@@ -160,7 +160,6 @@ function handleTestCommand(cmd) {
 }
 
 function tryContinueMultiConversation(sms, context) {
-  console.log('Testing if this is a continued conversation');
   // Get the index of the selected option
   var index = -1;
   var i;
@@ -277,7 +276,6 @@ module.exports = (function () {
 
             // TODO: Can we use a newline?
             message += options.join(' ');
-            console.log('Message length: ' + message.length);
             return message;
           });
         })

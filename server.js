@@ -21,18 +21,29 @@ app.configure(function() {
 app.post('/', function (req, res) {
   var tropo = new tropowebapi.TropoWebAPI();
 
+  // TODO: scrub Personally Identifiable Information in production
+  console.log('\nInbound message info:');
+  console.log(req.body);
+
   var session = req.body.session;
   var initialText = session.initialText.trim();
   smsflow.respondToSms(initialText, session.from.id)
   .then(function (message) {
     tropo.say(message);
-    res.send(tropowebapi.TropoJSON(tropo));
+    var jsonOut = tropowebapi.TropoJSON(tropo);
+    console.log('Outbound message info:');
+    console.log(jsonOut);
+    console.log('Message length: ' + message.length);
+    res.send(jsonOut);
   })
   .fail(function (reason) {
     console.log(reason);
     console.log(reason.stack);
     tropo.say(Strings.GenericFailMessage);
-    res.send(tropowebapi.TropoJSON(tropo));
+    var jsonOut = tropowebapi.TropoJSON(tropo);
+    console.log('Outbound message info:');
+    console.log(jsonOut);
+    res.send(jsonOut);
   });
 });
 
