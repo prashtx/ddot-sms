@@ -19,6 +19,7 @@ app.configure(function() {
 
 
 app.post('/', function (req, res) {
+  var startTime = Date.now();
   var tropo = new tropowebapi.TropoWebAPI();
 
   // TODO: scrub Personally Identifiable Information in production
@@ -34,6 +35,7 @@ app.post('/', function (req, res) {
     console.log('Outbound message info:');
     console.log(jsonOut);
     console.log('Message length: ' + message.length);
+    console.log('Processing time: ' + (Date.now() - startTime));
     res.send(jsonOut);
   })
   .fail(function (reason) {
@@ -43,6 +45,7 @@ app.post('/', function (req, res) {
     var jsonOut = tropowebapi.TropoJSON(tropo);
     console.log('Outbound message info:');
     console.log(jsonOut);
+    console.log('Processing time: ' + (Date.now() - startTime));
     res.send(jsonOut);
   });
 });
