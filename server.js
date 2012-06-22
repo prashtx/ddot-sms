@@ -8,7 +8,7 @@ var util = require('util');
 
 var Strings = require('./strings.js');
 var smsflow = require('./sms-flow.js');
-var geocoder = require('./geocoder.js'); // XXX
+var geocoder = require('./geocoder-nominatum.js'); // XXX
 var api = require('./ddotapi.js'); // XXX
 
 var app = express.createServer(express.logger());
