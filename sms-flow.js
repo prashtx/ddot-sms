@@ -210,7 +210,9 @@ module.exports = (function () {
 
       // If we didn't match the SMS to a conversation, treat it as an initial
       // request.
-      if (!isNaN(parseInt(sms, 10))) {
+      var number = parseInt(sms, 10);
+      // TODO: distinguish between zipcodes and stop IDs
+      if (!isNaN(number) && number.toString() === sms.trim()) {
         // We got numeric text. Treat it as a stop ID.
         var index = sms.indexOf(' ');
         var stopId;
