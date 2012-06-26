@@ -48,6 +48,14 @@ function startsWith(full, piece, options) {
   return full.substring(0, piece.length) === piece;
 }
 
+// Determine if any of the arrival times are based on schedule data (as opposed
+// to predicted, real-time data).
+function hasSched(arrivals) {
+  return arrivals.some(function (entry) {
+    return !entry.predicted;
+  });
+}
+
 function makeArrivalString(arrivals, now) {
   if (arrivals.length === 0) {
     // If there are no arrivals at all, say so.
@@ -90,7 +98,6 @@ function makeArrivalString(arrivals, now) {
   return arrivalSets.join(' ');
 }
 
-
 // Session tracking objects
 //
 // Types of stored conversation context
@@ -106,8 +113,13 @@ var actions = {
   arrivalsForStop: function arrivalsForStop(stopId) {
     return Q.all([api.getStop(stopId), api.getArrivalsForStop(stopId)])
     .spread(function (stop, data) {
-      var message = util.format(Strings.SingleStop, stop.name);
-      message += ' ' + makeArrivalString(data.arrivals, data.now);
+      var formatString = Strings.SingleStop;
+      if (hasSched(data.arrivals)) {
+        formatString = Strings.SingleStopWithSched;
+      }
+      var message = util.format(formatString,
+                                stop.name,
+                                makeArrivalString(data.arrivals, data.now));
       return message;
     });
   }
