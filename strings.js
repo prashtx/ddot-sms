@@ -5,8 +5,9 @@ module.exports = {
   GenericFailMessage: 'Sorry, we couldn\'t process your request! Trying something like: woodward and mack',
   NoArrivals: 'Sorry, no known vehicles arriving at that stop',
   ClosestStop: 'Closest stop: %s.',
-  OtherCloseStops: 'Send letter for stops:',
+  OtherCloseStops: 'Send letter for:',
   SingleStop: '@ %s, %s', // Stop name, arrivals
   SingleStopWithSched: '@ %s, %s *=sched', // Stop name, arrivals
-  MiscWithSched: '%s *=sched'
+  MiscWithSched: '%s *=sched',
+  Option: '%s)%s' // Letter, meaning
 };

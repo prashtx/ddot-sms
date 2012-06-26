@@ -56,7 +56,11 @@ function hasSched(arrivals) {
   });
 }
 
-function makeArrivalString(arrivals, now) {
+// Create a string of headsigns and arrival times.
+// arrivals: the array of arrivals as returned by ddotapi
+// now: the current time as reported by the API
+// max (optional): the maximum number of arrivals to include
+function makeArrivalString(arrivals, now, max) {
   if (arrivals.length === 0) {
     // If there are no arrivals at all, say so.
     return Strings.NoArrivals;
@@ -70,6 +74,11 @@ function makeArrivalString(arrivals, now) {
     if (times === undefined) {
       times = [];
       headsigns[entry.headsign] = times;
+    }
+
+    // Don't add more arrivals if we've reached the max.
+    if (max && (times.length >= max)) {
+      return;
     }
 
     // Milliseconds to minutes.
@@ -120,7 +129,7 @@ var actions = {
       }
       var message = util.format(formatString,
                                 stop.name,
-                                makeArrivalString(data.arrivals, data.now));
+                                makeArrivalString(data.arrivals, data.now, 5));
       return message;
     });
   }
@@ -239,7 +248,7 @@ module.exports = (function () {
         var def = Q.defer();
         api.getArrivalsForStop(stopId)
         .then(function (data) {
-          def.resolve(makeArrivalString(data.arrivals, data.now));
+          def.resolve(makeArrivalString(data.arrivals, data.now, 5));
         })
         .fail(function (reason) {
           def.resolve(Strings.GenericFailMessage);
@@ -263,7 +272,7 @@ module.exports = (function () {
             // Closest stop
             var message = util.format(Strings.ClosestStop, stops[0].name);
             // TODO: can we use a newline?
-            message += ' ' + makeArrivalString(data.arrivals, data.now);
+            message += ' ' + makeArrivalString(data.arrivals, data.now, 3);
 
             // Other stops
             // TODO: can we use a newline?
@@ -280,7 +289,7 @@ module.exports = (function () {
             var i;
             var options = [];
             for (i = 0; i < letters.length && i < stops.length - 1; i += 1) {
-              options.push(util.format('%s) %s', letters[i], stops[i + 1].name));
+              options.push(util.format(Strings.Option, letters[i], stops[i + 1].name));
               context.choices.push(letters[i]);
               context.actions.push('arrivalsForStop');
               context.params.push(stops[i + 1].id);
