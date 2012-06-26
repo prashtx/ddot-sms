@@ -62,7 +62,7 @@ function makeArrivalString(arrivals, now) {
     return Strings.NoArrivals;
   }
 
-  // Organize by headsign, so we can format it for presentation.
+  // Organize by headsign
   var headsigns = {};
   arrivals.forEach(function (entry) {
     // Times for this headsign
@@ -72,29 +72,30 @@ function makeArrivalString(arrivals, now) {
       headsigns[entry.headsign] = times;
     }
 
-    times.push({predicted: entry.predicted, arrival: entry.arrival - now});
+    // Milliseconds to minutes.
+    var timeString = Math.floor((entry.arrival - now) / 60000).toString();
+    if (!entry.predicted) {
+      // Indicate schedule-only data.
+      timeString += '*';
+    }
+    times.push(timeString);
   });
 
-  // Create the output text.
+  // Join the various headsigns, omitting the ones with no arrivals.
   var arrivalSets = [];
   forEachKey(headsigns, function (headsign, times) {
     // If there are no arrivals for this headsign, skip.
     if (times.length === 0) { return; }
 
-    var timeString = times.map(function (entry) {
-      // Milliseconds to minutes.
-      var s = Math.floor(entry.arrival / 60000).toString();
-      if (!entry.predicted) {
-        s += ' (sched)';
-      }
-      return s;
-    })
-    .join(', ');
-    var arrivalString = util.format('%s: %s min.', headsign, timeString);
+    var timeString = times.join(', ');
+    var arrivalString = util.format('%s: %s min', headsign, timeString);
     arrivalSets.push(arrivalString);
   });
 
   // TODO: can we use a newline?
+  if (hasSched(arrivals)) {
+    return util.format(Strings.MiscWithSched, arrivalSets.join(' '));
+  }
   return arrivalSets.join(' ');
 }
 

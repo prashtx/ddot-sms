@@ -7,5 +7,6 @@ module.exports = {
   ClosestStop: 'Closest stop: %s.',
   OtherCloseStops: 'Send letter for stops:',
   SingleStop: '@ %s, %s', // Stop name, arrivals
-  SingleStopWithSched: '@ %s, %s *=sched' // Stop name, arrivals
+  SingleStopWithSched: '@ %s, %s *=sched', // Stop name, arrivals
+  MiscWithSched: '%s *=sched'
 };
