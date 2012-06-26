@@ -21,6 +21,7 @@ app.configure(function() {
 app.post('/', function (req, res) {
   var startTime = Date.now();
   var tropo = new tropowebapi.TropoWebAPI();
+  res.setHeader('Content-Type', 'application/json');
 
   // TODO: scrub Personally Identifiable Information in production
   console.log('\nInbound message info:');
