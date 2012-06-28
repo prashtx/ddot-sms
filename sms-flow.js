@@ -381,8 +381,6 @@ module.exports = (function () {
               // present options the user, as well as context information, so
               // we can continue the conversation.
 
-              // Other stops
-              message += ' ' + Strings.OtherCloseRoutes + ' ';
 
               var context = {
                 type: conversationTypes.multi,
@@ -395,6 +393,11 @@ module.exports = (function () {
               forEachKey(novel, function(headsign, info) {
                 headsignList.push(info);
               });
+
+              // If there are no other options, just return the message we have so far.
+              if (headsignList.length === 0) {
+                return message;
+              }
 
               var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
               var i;
@@ -409,6 +412,8 @@ module.exports = (function () {
               // Save the session context.
               sman.save(id, context);
 
+              // Other trip headsigns
+              message += ' ' + Strings.OtherCloseRoutes + ' ';
               message += optionsText.join(' ');
 
               return message;
