@@ -152,9 +152,6 @@ var actions = {
         return item.headsign === info.headsign;
       });
 
-      if (hasSched(arrivals)) {
-        formatString = Strings.SingleStopWithSched;
-      }
       var message = util.format(formatString,
                                 stop.name,
                                 makeArrivalString(arrivals, data.now, 5));
