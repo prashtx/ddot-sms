@@ -292,7 +292,9 @@ module.exports = (function () {
           return api.getStopsForLocation(coords);
         })
         .then(function (stops) {
-          // TODO: handle the case of no stops found.
+          if (stops.length === 0) {
+            throw new Error('No stops found. Probably the geocoder was way off.');
+          }
 
           // Get arrivals for the nearest 5 stops.
           var arrivalPromises = [];
