@@ -35,13 +35,21 @@ module.exports = (function () {
         return;
       }
 
-      var data = JSON.parse(body);
-      var coords = {
-        lat: data.ResultSet.Results[0].latitude,
-        lon: data.ResultSet.Results[0].longitude,
-        meta: { quality: data.ResultSet.Results[0].quality }
-      };
-      def.resolve(coords);
+      try {
+        var data = JSON.parse(body);
+        var coords = {
+          lat: data.ResultSet.Results[0].latitude,
+          lon: data.ResultSet.Results[0].longitude,
+          meta: { quality: data.ResultSet.Results[0].quality }
+        };
+        def.resolve(coords);
+      } catch (e) {
+        console.log('Caught exception getting data from Yahoo Placefinder:');
+        console.log(e.message);
+        console.log('Yahoo response body:');
+        console.log(body);
+        def.reject(e);
+      }
     });
 
     return def.promise;
