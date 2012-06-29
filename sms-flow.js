@@ -3,7 +3,7 @@
 var util = require('util');
 var Q = require('q');
 var api = require('./ddotapi.js');
-var geocoder = require('./geocoder.js');
+var geocoder = require('./geocoder-google.js');
 var Strings = require('./strings.js');
 var sman = require('./session-manager.js');
 
