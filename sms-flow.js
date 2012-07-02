@@ -414,6 +414,7 @@ module.exports = (function () {
                   context.actions.push('arrivalsForStopAndHeadsign');
                   context.params.push(JSON.stringify(headsignList[i]));
                   j += 1;
+                }
                 i += 1;
               }
 
