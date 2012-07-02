@@ -8,7 +8,8 @@ var Q = require('q');
 //var API = 'http://ec2-23-22-140-30.compute-1.amazonaws.com:3001/api/api/where/';
 var API = process.env.OBA_API;
 var API_KEY = 'TEST';
-var AGENCY = 'Detroit Department of Transportation';
+//var AGENCY = 'Detroit Department of Transportation';
+var AGENCY = 'DDOT';
 
 // Prepend the agency ID to the item ID, unless it's already there.
 // So '1723' becomes 'Detroit Department of Transportation_1723'
