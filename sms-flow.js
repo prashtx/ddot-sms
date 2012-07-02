@@ -304,7 +304,9 @@ module.exports = (function () {
             // Closest stop
             var message = util.format(Strings.ClosestStop, stops[0].name);
             message += ' ' + makeArrivalString(data.arrivals, data.now, 3);
-            return message;
+
+            var primaryHeadsigns = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
+            return {message: message, primaryHeadsigns: primaryHeadsigns};
           }, function (reason) {
             // If we fail to get data on the nearest stop, we can't craft a
             // very nice response. For now, just fail.
@@ -312,7 +314,9 @@ module.exports = (function () {
             // the next-closest stop.
             throw reason;
           })
-          .then(function (message) {
+          .then(function (value) {
+            var message = value.message;
+            var primaryHeadsigns = value.primaryHeadsigns;
             return Q.allResolved(arrivalPromises)
             .then(function (promises) {
               var data;
@@ -400,13 +404,17 @@ module.exports = (function () {
               }
 
               var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-              var i;
               var optionsText = [];
-              for (i = 0; i < letters.length && i < headsignList.length - 1; i += 1) {
-                optionsText.push(util.format(Strings.Option, letters[i], headsignList[i + 1].headsign));
-                context.choices.push(letters[i]);
-                context.actions.push('arrivalsForStopAndHeadsign');
-                context.params.push(JSON.stringify(headsignList[i + 1]));
+              var i = 0;
+              var j = 0;
+              while (j < letters.length && i < headsignList.length) {
+                if (!primaryHeadsigns.hasOwnProperty(headsignList[i].headsign)) {
+                  optionsText.push(util.format(Strings.Option, letters[j], headsignList[i].headsign));
+                  context.choices.push(letters[j]);
+                  context.actions.push('arrivalsForStopAndHeadsign');
+                  context.params.push(JSON.stringify(headsignList[i]));
+                  j += 1;
+                i += 1;
               }
 
               // Save the session context.
