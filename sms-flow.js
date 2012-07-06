@@ -37,6 +37,18 @@ function forEachKey(obj, fun) {
   }
 }
 
+// For each word, make the first letter uppercase and the other letters
+// lowercase.
+function toMixedCase(str) {
+  var arr = str.split(' ');
+  return arr.map(function (s) {
+    if (s.length <= 1) {
+      return s.toLocaleUpperCase();
+    }
+    return s[0].toLocaleUpperCase() + s.substr(1).toLocaleLowerCase();
+  }).join(' ');
+}
+
 function startsWith(full, piece, options) {
   if (full.length < piece.length) { return false; }
   if (options && !options.caseSensitive) {
@@ -103,7 +115,7 @@ function makeArrivalString(arrivals, now, max) {
     if (times.length === 0) { return; }
 
     var timeString = times.join(', ');
-    var arrivalString = util.format('%s: %s min', headsign, timeString);
+    var arrivalString = util.format('%s: %s min', toMixedCase(headsign), timeString);
     arrivalSets.push(arrivalString);
   });
 
@@ -134,7 +146,7 @@ var actions = {
         formatString = Strings.SingleStopWithSched;
       }
       var message = util.format(formatString,
-                                stop.name,
+                                toMixedCase(stop.name),
                                 makeArrivalString(data.arrivals, data.now, 5));
       return message;
     });
@@ -153,7 +165,7 @@ var actions = {
       });
 
       var message = util.format(formatString,
-                                stop.name,
+                                toMixedCase(stop.name),
                                 makeArrivalString(arrivals, data.now, 5));
       return message;
     });
@@ -302,7 +314,7 @@ module.exports = (function () {
 
           return arrivalPromises[0].then(function (data) {
             // Closest stop
-            var message = util.format(Strings.ClosestStop, stops[0].name);
+            var message = util.format(Strings.ClosestStop, toMixedCase(stops[0].name));
             message += ' ' + makeArrivalString(data.arrivals, data.now, 3);
 
             var primaryHeadsigns = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
@@ -409,7 +421,7 @@ module.exports = (function () {
               var j = 0;
               while (j < letters.length && i < headsignList.length) {
                 if (!primaryHeadsigns.hasOwnProperty(headsignList[i].headsign)) {
-                  optionsText.push(util.format(Strings.Option, letters[j], headsignList[i].headsign));
+                  optionsText.push(util.format(Strings.Option, letters[j], toMixedCase(headsignList[i].headsign)));
                   context.choices.push(letters[j]);
                   context.actions.push('arrivalsForStopAndHeadsign');
                   context.params.push(JSON.stringify(headsignList[i]));
