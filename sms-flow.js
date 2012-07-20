@@ -60,6 +60,80 @@ function startsWith(full, piece, options) {
   return full.substring(0, piece.length) === piece;
 }
 
+// Strip the trailing signature from an incoming SMS.
+function stripSignature(msg) {
+  // We check to see if the message has a coda that's been bracketed by one of
+  // the following srings. The order here matters. If the signature is
+  // '$$blahblah$$', and we're looking for signatures bracketed by '$', then
+  // we'll just strip the last two '$' characters. So we need to search for
+  // '$$'. In other words, we should put the greedier strings first.
+  var signatureBrackets = [
+    '$$',
+    '**',
+    '$',
+    '*',
+    '^.^',
+    '^^',
+    '^'
+  ];
+
+  function trimBracketed(msg, bracket) {
+    // Look for bracketing by a string
+    // So something like: real message *16 KINGS*
+    // or: real message $$cool signature$$
+    if (msg.length > bracket.length) {
+      if(msg.slice(msg.length - bracket.length) === bracket) {
+        var piece = msg.slice(0, -bracket.length);
+        var index = piece.lastIndexOf(bracket);
+        if (index !== -1) {
+          return piece.slice(0, index);
+        }
+      }
+    }
+    return msg;
+  }
+
+  // We check to see if the message has a coda that's been bracketed by one of
+  // the following strings. We try to find bracketed signatures first, because
+  // we might need to be a little more conservative about separators.
+  var signatureSeparators = [
+    '\n',
+    '^.^'
+  ];
+
+  function trimSeparated(msg, separator) {
+    var index = msg.lastIndexOf(separator);
+    if (index !== -1) {
+      return msg.slice(0, index);
+    }
+    return msg;
+  }
+
+  var index;
+
+  // Look for signatures bracketed by certain characters.
+  var trimmed = signatureBrackets.reduce(function (prev, current) {
+    // If we already trimmed successfully, skip the rest.
+    if (prev !== msg) { return prev; }
+    return trimBracketed(msg, current);
+  }, msg);
+
+  if (trimmed !== msg) {
+    return trimmed;
+  }
+
+  trimmed = signatureSeparators.reduce(function (prev, current) {
+    if (prev !== msg) { return prev; }
+    return trimSeparated(msg, current);
+  }, msg);
+
+  if (trimmed !== msg) {
+    return trimmed;
+  }
+
+  return msg;
+}
+
 // Determine if any of the arrival times are based on schedule data (as opposed
 // to predicted, real-time data).
 function hasSched(arrivals) {
@@ -249,6 +323,9 @@ module.exports = (function () {
       return handleTestCommand(sms.substring(keywords.test.length));
     }
 
+    sms = stripSignature(sms);
+    console.log('Incoming message stripped of signature: ' + sms);
+
     return sman.get(id)
     .then(function (entry) {
       var promise;
@@ -288,6 +365,7 @@ module.exports = (function () {
           def.resolve(makeArrivalString(data.arrivals, data.now, 5));
         })
         .fail(function (reason) {
+          console.log(reason.message);
           def.resolve(Strings.GenericFailMessage);
         });
         promise = def.promise;

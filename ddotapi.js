@@ -150,6 +150,12 @@ module.exports = (function () {
       }
 
       var data = JSON.parse(body);
+
+      if (!data.data || !data.data.entry) {
+        def.reject(new Error('No results for stop ' + stopId));
+        return def.promise;
+      }
+
       var now = data.currentTime;
       var arrivals = data.data.entry.arrivalsAndDepartures
       .map(function (entry) {
