@@ -299,7 +299,9 @@ function tryContinueMultiConversation(sms, context) {
   for (i = 0; i < context.choices.length; i += 1) {
     var choice = context.choices[i];
     if (startsWith(sms, choice, {caseSensitive: false}) &&
-        (sms.length === choice.length || sms[choice.length] === ' ')) {
+        (sms.length === choice.length ||
+         sms[choice.length] === ' ' ||
+         sms[choice.length] === ')')) {
       index = i;
       break;
     }
