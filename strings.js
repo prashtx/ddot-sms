@@ -7,7 +7,7 @@ module.exports = {
   ClosestStop: 'Closest stop: %s.',
   OtherCloseStops: 'Send letter for:',
   OtherCloseRoutes: 'Send letter for:',
-  SingleStop: '@ %s, %s', // Stop name, arrivals
+  SingleStop: '@ %s\n%s', // Stop name, arrivals
   SingleStopWithSched: '@ %s, %s *scheduled', // Stop name, arrivals
   MiscWithSched: '%s *scheduled',
   Option: '%s)%s' // Letter, meaning

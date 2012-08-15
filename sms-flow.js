@@ -193,11 +193,10 @@ function makeArrivalString(arrivals, now, max) {
     arrivalSets.push(arrivalString);
   });
 
-  // TODO: can we use a newline?
   if (hasSched(arrivals)) {
-    return util.format(Strings.MiscWithSched, arrivalSets.join(' '));
+    return util.format(Strings.MiscWithSched, arrivalSets.join('\n'));
   }
-  return arrivalSets.join(' ');
+  return arrivalSets.join('\n');
 }
 
 // Session tracking objects
@@ -250,13 +249,11 @@ var actions = {
 
 
 function handleTestCommand(cmd) {
-  var def = Q.defer();
-
   console.log('Handling a test command.');
 
   if (keywordMatches(keywords.near, cmd)) {
     // Get lon-lat for the specified location
-    geocoder.code(cmd.substring(keywords.near.length), 'Detroit, MI')
+    return geocoder.code(cmd.substring(keywords.near.length), 'Detroit, MI')
     .then(function (coords) {
       // Get the nearby stops
       return api.getStopsForLocation(coords);
@@ -267,29 +264,27 @@ function handleTestCommand(cmd) {
       .map(function (stop) {
         return util.format('%s: %s', stop.id.substring('Detroit Department of Transportation_'.length), stop.name);
       })
-      .join(' ');
-      def.resolve(message);
-    })
-    .fail(function (reason) {
-      def.reject();
+      .join('\n');
+      return message;
     });
-  } else if (keywordMatches(keywords.routes, cmd)) {
+  }
+
+  if (keywordMatches(keywords.routes, cmd)) {
     console.log('Getting routes');
-    api.getRoutes()
+    return api.getRoutes()
     .then(function (routes) {
       var message = 'Routes:';
       var i;
       for (i = 0; i < routes.length; i += 1) {
         message += ' ' + routes[i].shortName;
       }
-      def.resolve(message);
-    })
-    .fail(function () { def.reject(); });
-  } else {
-    def.resolve('Did not understand the command');
+      return message;
+    });
   }
 
-  return def.promise;
+  return Q.fcall(function () {
+    return 'I did not understand the test command';
+  });
 }
 
 function tryContinueMultiConversation(sms, context) {
@@ -361,16 +356,14 @@ module.exports = (function () {
         }
 
         // Fetch the arrival time info
-        var def = Q.defer();
-        api.getArrivalsForStop(stopId)
+        promise = api.getArrivalsForStop(stopId)
         .then(function (data) {
-          def.resolve(makeArrivalString(data.arrivals, data.now, 5));
+          return makeArrivalString(data.arrivals, data.now, 5);
         })
         .fail(function (reason) {
           console.log(reason.message);
-          def.resolve(Strings.GenericFailMessage);
+          return Strings.GenericFailMessage;
         });
-        promise = def.promise;
       } else {
         // Non-numeric. Treat it as a location.
 
@@ -395,7 +388,7 @@ module.exports = (function () {
           return arrivalPromises[0].then(function (data) {
             // Closest stop
             var message = util.format(Strings.ClosestStop, toMixedCase(stops[0].name));
-            message += ' ' + makeArrivalString(data.arrivals, data.now, 3);
+            message += '\n' + makeArrivalString(data.arrivals, data.now, 3);
 
             var primaryHeadsigns = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
             return {message: message, primaryHeadsigns: primaryHeadsigns};
@@ -514,8 +507,8 @@ module.exports = (function () {
               sman.save(id, context);
 
               // Other trip headsigns
-              message += ' ' + Strings.OtherCloseRoutes + ' ';
-              message += optionsText.join(' ');
+              message += '\n' + Strings.OtherCloseRoutes + '\n';
+              message += optionsText.join('\n');
 
               return message;
             });
