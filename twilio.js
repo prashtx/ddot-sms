@@ -3,12 +3,6 @@
 
 var util = require('util');
 
-//&lt; represents "<"
-//&gt; represents ">"
-//&amp; represents "&"
-//&apos; represents '
-//&quot; represents "
-
 // Make sure to escape the message appropriately for XML
 var xmlSkeleton = '<?xml version="1.0" encoding="UTF-8"?><Response>%s</Response>';
 var xmlSMS = '<Sms>%s</Sms>';
