@@ -2,8 +2,13 @@
 
 // TODO: read the strings in from a JSON or YAML file
 module.exports = {
-  GenericFailMessage: 'Sorry, we couldn\'t process your request! Trying something like: woodward and mack',
-  NoArrivals: 'Sorry, no known vehicles arriving at that stop',
-  ClosestStop: 'Closest stop is %s.',
-  OtherCloseStops: 'Reply with letter for other stops:'
+  GenericFailMessage: 'Sorry, I couldn\'t process your request! Trying something like: woodward and mack',
+  NoArrivals: 'Sorry, I don\'t see anything for that stop',
+  ClosestStop: 'Closest stop: %s.',
+  OtherCloseStops: 'Send letter for:',
+  OtherCloseRoutes: 'Send letter for:',
+  SingleStop: '@ %s, %s', // Stop name, arrivals
+  SingleStopWithSched: '@ %s, %s *scheduled', // Stop name, arrivals
+  MiscWithSched: '%s *scheduled',
+  Option: '%s)%s' // Letter, meaning
 };

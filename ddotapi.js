@@ -5,9 +5,11 @@ var url = require('url');
 var request = require('request');
 var Q = require('q');
 
-var API = 'http://ec2-23-22-140-30.compute-1.amazonaws.com:3001/api/api/where/';
+//var API = 'http://ec2-23-22-140-30.compute-1.amazonaws.com:3001/api/api/where/';
+var API = process.env.OBA_API;
 var API_KEY = 'TEST';
-var AGENCY = 'Detroit Department of Transportation';
+//var AGENCY = 'Detroit Department of Transportation';
+var AGENCY = 'DDOT';
 
 // Prepend the agency ID to the item ID, unless it's already there.
 // So '1723' becomes 'Detroit Department of Transportation_1723'
@@ -64,8 +66,8 @@ module.exports = (function () {
     //request.get(apiUrl('routes-for-agency', AGENCY), function(error, resp, body) {
     request.get(apiUrl('routes-for-agency', AGENCY), function(error, resp, body) {
       if (error || resp.statusCode !== 200) {
-        def.reject();
-        return;
+        def.reject(error || new Error('Received status ' + resp.statusCode));
+        return def.promise;
       }
 
       var data = JSON.parse(body);
@@ -97,15 +99,36 @@ module.exports = (function () {
 
     request.get(apiUrl('stops-for-location', null, coords),
                 function (error, resp, body) {
-      if (error || resp.statusCode !== 200) {
-        def.reject();
-        return;
+      if (error) {
+        def.reject(error);
+        return def.promise;
+      }
+      if (resp.statusCode !== 200) {
+        def.reject(new Error('Received status ' + resp.statusCode));
+        return def.promise;
       }
 
       var data = JSON.parse(body);
       def.resolve(data.data.list.sort(function (a, b) {
         return distance(coords, a) - distance(coords, b);
       }));
+    });
+
+    return def.promise;
+  };
+
+  // Get stop details by stop ID.
+  self.getStop = function (stopId) {
+    var def = Q.defer();
+
+    request.get(apiUrl('stop', stopId), function (error, resp, body) {
+      if (error || resp.statusCode !== 200) {
+        def.reject(error || new Error('Received status ' + resp.statusCode));
+        return def.promise;
+      }
+
+      var data = JSON.parse(body);
+      def.resolve(data.data.entry);
     });
 
     return def.promise;
@@ -122,11 +145,17 @@ module.exports = (function () {
     request.get(apiUrl('arrivals-and-departures-for-stop', makeFullId(stopId), query),
                 function (error, resp, body) {
       if (error || resp.statusCode !== 200) {
-        def.reject();
-        return;
+        def.reject(error || new Error('Received status ' + resp.statusCode));
+        return def.promise;
       }
 
       var data = JSON.parse(body);
+
+      if (!data.data || !data.data.entry) {
+        def.reject(new Error('No results for stop ' + stopId));
+        return def.promise;
+      }
+
       var now = data.currentTime;
       var arrivals = data.data.entry.arrivalsAndDepartures
       .map(function (entry) {
