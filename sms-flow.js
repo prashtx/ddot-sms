@@ -193,11 +193,10 @@ function makeArrivalString(arrivals, now, max) {
     arrivalSets.push(arrivalString);
   });
 
-  // TODO: can we use a newline?
   if (hasSched(arrivals)) {
-    return util.format(Strings.MiscWithSched, arrivalSets.join(' '));
+    return util.format(Strings.MiscWithSched, arrivalSets.join('\n'));
   }
-  return arrivalSets.join(' ');
+  return arrivalSets.join('\n');
 }
 
 // Session tracking objects
@@ -267,7 +266,7 @@ function handleTestCommand(cmd) {
       .map(function (stop) {
         return util.format('%s: %s', stop.id.substring('Detroit Department of Transportation_'.length), stop.name);
       })
-      .join(' ');
+      .join('\n');
       def.resolve(message);
     })
     .fail(function (reason) {
@@ -514,8 +513,8 @@ module.exports = (function () {
               sman.save(id, context);
 
               // Other trip headsigns
-              message += ' ' + Strings.OtherCloseRoutes + ' ';
-              message += optionsText.join(' ');
+              message += '\n' + Strings.OtherCloseRoutes + '\n';
+              message += optionsText.join('\n');
 
               return message;
             });
