@@ -174,6 +174,12 @@ function organizeArrivalsByHeadsign(arrivals, now, max) {
 // now: the current time as reported by the API
 // max (optional): the maximum number of arrivals to include
 function makeArrivalString(arrivals, now, max) {
+  // Filter out predictions for past arrivals, which might see if a bus is
+  // ahead of schedule.
+  arrivals = arrivals.filter(function (entry) {
+    return entry.arrival > now;
+  });
+
   if (arrivals.length === 0) {
     // If there are no arrivals at all, say so.
     return Strings.NoArrivals;
