@@ -2,7 +2,7 @@
 
 // TODO: read the strings in from a JSON or YAML file
 module.exports = {
-  GenericFailMessage: 'Sorry, I couldn\'t process your request! Trying something like: woodward and mack',
+  GenericFailMessage: 'Sorry! I couldn\'t process that. Try something like:\nwoodward and mack',
   NoArrivals: 'Sorry, I don\'t see anything for that stop',
   ClosestStop: 'Closest stop: %s.',
   OtherCloseStops: 'Send letter for:',
