@@ -144,7 +144,13 @@ function hasSched(arrivals) {
 
 function organizeArrivalsByHeadsign(arrivals, now, max) {
   var headsigns = {};
+  var scheduled = false;
   arrivals.forEach(function (entry) {
+    // Skip entries in the past
+    if (entry.arrival < now) {
+      return;
+    }
+
     // Times for this headsign
     var times = headsigns[entry.headsign];
     if (times === undefined) {
@@ -162,11 +168,15 @@ function organizeArrivalsByHeadsign(arrivals, now, max) {
     if (!entry.predicted) {
       // Indicate schedule-only data.
       timeString += '*';
+      scheduled = true;
     }
     times.push(timeString);
   });
 
-  return headsigns;
+  return {
+    headsigns: headsigns,
+    scheduled: scheduled
+  };
 }
 
 // Create a string of headsigns and arrival times.
@@ -186,7 +196,8 @@ function makeArrivalString(arrivals, now, max) {
   }
 
   // Organize by headsign
-  var headsigns = organizeArrivalsByHeadsign(arrivals, now, max);
+  var organized = organizeArrivalsByHeadsign(arrivals, now, max);
+  var headsigns = organized.headsigns;
 
   // Join the various headsigns, omitting the ones with no arrivals.
   var arrivalSets = [];
@@ -199,7 +210,7 @@ function makeArrivalString(arrivals, now, max) {
     arrivalSets.push(arrivalString);
   });
 
-  if (hasSched(arrivals)) {
+  if (organized.scheduled) {
     return util.format(Strings.MiscWithSched, arrivalSets.join('\n'));
   }
   return arrivalSets.join('\n');
@@ -397,8 +408,8 @@ module.exports = (function () {
           var message = util.format(Strings.ClosestStop, toMixedCase(stops[0].name));
           message += '\n' + makeArrivalString(data.arrivals, data.now, 3);
 
-          var primaryHeadsigns = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
-          return {message: message, primaryHeadsigns: primaryHeadsigns};
+          var organized = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
+          return {message: message, primaryHeadsigns: organized.headsigns};
         }, function (reason) {
           // If we fail to get data on the nearest stop, we can't craft a
           // very nice response. For now, just fail.
