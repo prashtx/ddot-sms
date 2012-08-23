@@ -39,6 +39,12 @@ module.exports = (function () {
     }
   });
 
+  function query(queryInfo) {
+    var def = Q.defer();
+    client.query(queryInfo, def.makeNodeResolver());
+    return def.promise;
+  }
+
   client.query({
     text: 'CREATE TABLE IF NOT EXISTS geocoder_cache(' +
             'cacheKey varchar(50) PRIMARY KEY,' +
@@ -49,14 +55,28 @@ module.exports = (function () {
   }, function (err, result) {
     if (err) {
       throw err;
+    } else {
+      // Create an index on the timestamp column, so we can efficiently find
+      // the oldest entries.
+      query({
+        text: 'CREATE INDEX timestamp_idx ON geocoder_cache (timestamp)'
+      })
+      .fail(function (reason) {
+        console.log('Failed to create timestamp index!');
+        console.log(reason.message);
+      });
+
+      // Create an index on the count column, so we can efficiently look at
+      // cache usage statistics.
+      query({
+        text: 'CREATE INDEX count_idx ON geocoder_cache (count)'
+      })
+      .fail(function (reason) {
+        console.log('Failed to create count index!');
+        console.log(reason.message);
+      });
     }
   });
-
-  function query(queryInfo) {
-    var def = Q.defer();
-    client.query(queryInfo, def.makeNodeResolver());
-    return def.promise;
-  }
 
   // Take a two-line address and turn it into a normalized key for the cache.
   function makeCacheKey(line1, line2) {
