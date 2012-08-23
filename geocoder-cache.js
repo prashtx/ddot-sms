@@ -44,7 +44,7 @@ module.exports = (function () {
             'cacheKey varchar(50) PRIMARY KEY,' +
             'timestamp timestamp,' +
             'lon double precision, lat double precision,' +
-            'count integer)',
+            'count integer DEFAULT 1)',
     name: 'ensureTable'
   }, function (err, result) {
     if (err) {
