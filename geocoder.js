@@ -99,7 +99,6 @@ module.exports = (function () {
 
   self.code = function (line1, line2) {
     // Check the cache
-    // TODO: normalize the input before caching (toLowercase, maybe compress whitespace)
     return cache.get(line1, line2).then(function (cachedCoords) {
       if (cachedCoords !== null) {
         console.log('Geocoder: using cache');

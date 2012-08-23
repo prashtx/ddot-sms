@@ -58,8 +58,9 @@ module.exports = (function () {
     return def.promise;
   }
 
+  // Take a two-line address and turn it into a normalized key for the cache.
   function makeCacheKey(line1, line2) {
-    return line1 + ',' + line2;
+    return (line1 + ',' + line2).toLowerCase().trim().replace(/[\s\n\r]+/g,' ');
   }
 
   // Check how many entries we have. If we've exceeded the maximum count,
