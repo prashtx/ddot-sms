@@ -57,39 +57,39 @@ module.exports = (function () {
 
       if (nominatumReason) {
         // Nominatum failed, Yahoo succeeded, so Yahoo's quality value doesn't matter.
-        console.log('Using Yahoo Placefinder geocoder');
+        console.log('Geocoder: using Yahoo Placefinder');
         return yahooPromise;
       }
 
       if (yahooReason) {
         // Yahoo failed, so go with Nominatum
-        console.log('Using Nominatum geocoder');
+        console.log('Geocoder: using Nominatim');
         return nominatumPromise;
       }
 
       // Both methods succeeded, so check Yahoo's quality
       if (yahooResult.meta.quality < minYahooQuality) {
-        console.log('Using Nominatum geocoder');
+        console.log('Geocoder: using Nominatim');
         return nominatumPromise;
       }
 
-      console.log('Using Yahoo Placefinder geocoder');
+      console.log('Geocoder: using Yahoo Placefinder');
       return yahooPromise;
     })
     .then(function (coords) {
       cache.add(line1, line2, coords);
+      console.log('Geocoder: using Yahoo+Nominatim');
       return coords;
     });
   };
 
   self.googleCode = function (line1, line2) {
     return google.code(line1, line2).then(function (coords) {
-      lastGoogle = Date.now();
       cache.add(line1, line2, coords);
+      console.log('Geocoder: using Google Maps');
       return coords;
     })
     .fail(function (reason) {
-      lastGoogle = Date.now();
       console.log(reason.message);
       // We've used Google too recently or something went wrong. Try the
       // Yahoo/Nominatum combo.
@@ -102,6 +102,7 @@ module.exports = (function () {
     // TODO: normalize the input before caching (toLowercase, maybe compress whitespace)
     return cache.get(line1, line2).then(function (cachedCoords) {
       if (cachedCoords !== null) {
+        console.log('Geocoder: using cache');
         return cachedCoords;
       }
 
@@ -110,6 +111,7 @@ module.exports = (function () {
     })
     .fail(function (reason) {
       // Cache error.
+      console.log('Error in cache.get:');
       console.log(reason.message);
 
       // Try Google Maps.
