@@ -13,7 +13,7 @@ var url = require('url');
 var Q = require('q');
 
 var yahoo = require('./geocoder-yahoo.js');
-var nominatum = require('./geocoder-nominatum.js');
+var nominatim = require('./geocoder-nominatum.js');
 var google = require('./geocoder-google.js');
 var cache = require('./geocoder-cache.js');
 
@@ -24,62 +24,48 @@ module.exports = (function () {
 
   self.comboCode = function (line1, line2) {
     var yahooPromise = yahoo.code(line1, line2);
-    var nominatumPromise = nominatum.code(line1, line2);
+    var nominatimPromise = nominatim.code(line1, line2);
 
-    var yahooResult;
-    var yahooReason;
-    var nominatumResult;
-    var nominatumReason;
+    console.log('Geocoder: using Yahoo+Nominatim');
 
-    // TODO: If Yahoo Placefinder is successful and meets the quality bar, then
-    // we don't have to wait for the Nominatum request.
-    yahooPromise.then(function (value) {
-      yahooResult = value;
+    return yahooPromise.then(function (yahooResult) {
+      // Check if the Yahoo Placefinder result meets the quality bar.
+      if (yahooResult.meta.quality >= minYahooQuality) {
+        console.log('Geocoder: using Yahoo Placefinder');
+        return yahooResult;
+      }
+
+      // If we got a fuzzy response from Yahoo, then let's process the Nominatim response.
+      return nominatimPromise.then(function (nominatimResult) {
+        // Nominatim succeeded, and Yahoo was below the quality bar, so let's
+        // use Nominatim.
+        console.log('Geocoder: using Nominatim');
+        return nominatimResult;
+      })
+      .fail(function (reason) {
+        // Nominatim failed, so we'll use Yahoo regardless of the quality.
+        console.log('Nominatum failed: ' + reason.message);
+        console.log('Geocoder: using Yahoo Placefinder');
+        return yahooResult;
+      });
     })
     .fail(function (reason) {
       console.log('Yahoo Placefinder failed: ' + reason.message);
-      yahooReason = reason;
-    });
-
-    nominatumPromise.then(function (value) {
-      nominatumResult = value;
-    })
-    .fail(function (reason) {
-      console.log('Nominatum failed: ' + reason.message);
-      nominatumReason = reason;
-    });
-
-    return Q.allResolved([yahooPromise, nominatumPromise])
-    .then(function (promises) {
-      if (nominatumReason && yahooReason) {
-        throw new Error('All geocoder services failed to return results.');
-      }
-
-      if (nominatumReason) {
-        // Nominatum failed, Yahoo succeeded, so Yahoo's quality value doesn't matter.
-        console.log('Geocoder: using Yahoo Placefinder');
-        return yahooPromise;
-      }
-
-      if (yahooReason) {
-        // Yahoo failed, so go with Nominatum
-        console.log('Geocoder: using Nominatim');
-        return nominatumPromise;
-      }
-
-      // Both methods succeeded, so check Yahoo's quality
-      if (yahooResult.meta.quality < minYahooQuality) {
-        console.log('Geocoder: using Nominatim');
-        return nominatumPromise;
-      }
-
-      console.log('Geocoder: using Yahoo Placefinder');
-      return yahooPromise;
+      // Yahoo Placefinder failed altogether, so we have no choice left but to
+      // use Nominatim.
+      console.log('Geocoder: using Nominatim');
+      return nominatimPromise;
     })
     .then(function (coords) {
+      // Add to cache.
       cache.add(line1, line2, coords);
-      console.log('Geocoder: using Yahoo+Nominatim');
       return coords;
+    })
+    .fail(function (reason) {
+      // All geocoders failed!
+      console.log(reason.message);
+      console.log('All geocoders failed!');
+      throw reason;
     });
   };
 
