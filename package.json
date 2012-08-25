@@ -10,6 +10,8 @@
     "tropo-webapi": "1.0.x",
     "request": "2.9.x",
     "q": "0.8.x",
-    "pg": "0.8.x"
+    "pg": "0.8.x",
+    "crc": "0.2.0",
+    "kissmetrics": "0.0.4"
   }
 }
