@@ -6,6 +6,7 @@ var tropowebapi = require('tropo-webapi');
 var request = require('request');
 var util = require('util');
 var http = require('http');
+var crc = require('crc');
 
 var Strings = require('./strings.js');
 var smsflow = require('./sms-flow.js');
@@ -35,11 +36,12 @@ app.post('/twilio', function (req, res) {
     return;
   }
 
-  var from = req.body.From || '0';
+  var to = req.body.To || '';
+  // Mask the user's phone number
+  var from = crc.hex32(crc.crc32(req.body.From || '0'));
 
-  // TODO: scrub Personally Identifiable Information in production
   console.log('\nInbound message info:');
-  console.log(JSON.stringify(req.body));
+  console.log(JSON.stringify({ from: from, to: to, body: initialText }));
 
   smsflow.respondToSms(initialText, from)
   .then(function (message) {
@@ -69,13 +71,30 @@ app.post('/tropo', function (req, res) {
   var tropo = new tropowebapi.TropoWebAPI();
   res.setHeader('Content-Type', 'application/json');
 
-  // TODO: scrub Personally Identifiable Information in production
-  console.log('\nInbound message info:');
-  console.log(req.body);
-
   var session = req.body.session;
+  if (req.body.session === undefined) {
+    res.send(400);
+    return;
+  }
+  if (session.from === undefined) {
+    res.send(400);
+    return;
+  }
+
+  var to;
+  if (session.to) {
+    to = session.to.id || '';
+  } else {
+    to = '';
+  }
+  // Mask the user's phone number
+  var from = crc.hex32(crc.crc32(session.from.id || '0'));
   var initialText = session.initialText.trim();
-  smsflow.respondToSms(initialText, session.from.id)
+
+  console.log('\nInbound message info:');
+  console.log(JSON.stringify({ from: from, to: to, body: initialText }));
+
+  smsflow.respondToSms(initialText, from)
   .then(function (message) {
     tropo.say(message);
     var jsonOut = tropowebapi.TropoJSON(tropo);

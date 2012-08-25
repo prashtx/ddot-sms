@@ -6,6 +6,7 @@ var api = require('./ddotapi.js');
 var geocoder = require('./geocoder.js');
 var Strings = require('./strings.js');
 var sman = require('./session-manager.js');
+var metrics = require('./metrics.js');
 
 
 var keywords = {
@@ -337,6 +338,9 @@ module.exports = (function () {
       return handleTestCommand(sms.substring(keywords.test.length));
     }
 
+    // Track that we got a message
+    metrics.message(id);
+
     sms = stripSignature(sms);
     console.log('Incoming message stripped of signature: ' + sms);
 
@@ -355,6 +359,8 @@ module.exports = (function () {
 
       // If we matched the SMS to a conversation, then we're done here.
       if (promise) {
+        // Track that the user is continuing a conversation
+        metrics.conversationContinue(id);
         return promise;
       }
 
@@ -373,7 +379,7 @@ module.exports = (function () {
         }
 
         // Fetch the arrival time info
-        return api.getArrivalsForStop(stopId)
+        var stopPromise = api.getArrivalsForStop(stopId)
         .then(function (data) {
           return makeArrivalString(data.arrivals, data.now, 5);
         })
@@ -381,6 +387,11 @@ module.exports = (function () {
           console.log(reason.message);
           return Strings.GenericFailMessage;
         });
+
+        // Track that the user sent a stop ID
+        metrics.stopID(id);
+
+        return stopPromise;
       }
 
       // Non-numeric. Treat it as a location.
