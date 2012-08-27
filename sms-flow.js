@@ -1,4 +1,5 @@
-/*jslint node: true, indent: 2, sloppy: true, white: true, vars: true */
+/*jslint node: true, indent: 2, white: true, vars: true */
+'use strict';
 
 var util = require('util');
 var Q = require('q');
@@ -48,6 +49,11 @@ function toMixedCase(str) {
     }
     return s[0].toLocaleUpperCase() + s.substr(1).toLocaleLowerCase();
   }).join(' ');
+}
+
+// Compress whitespace in a string and trim the ends.
+function compressWhitespace(str) {
+  return str.trim().replace(/[\s\n\r]+/g,' ');
 }
 
 function startsWith(full, piece, options) {
@@ -207,7 +213,7 @@ function makeArrivalString(arrivals, now, max) {
     if (times.length === 0) { return; }
 
     var timeString = times.join(', ');
-    var arrivalString = util.format('%s: %s min', toMixedCase(headsign), timeString);
+    var arrivalString = util.format('%s: %s min', compressWhitespace(toMixedCase(headsign)), timeString);
     arrivalSets.push(arrivalString);
   });
 
@@ -252,7 +258,7 @@ var actions = {
     .spread(function (stop, data) {
       var formatString = Strings.SingleStop;
       var arrivals = data.arrivals.filter(function (item) {
-        return item.headsign === info.headsign;
+        return compressWhitespace(item.headsign) === info.headsign;
       });
 
       var message = util.format(formatString,
@@ -411,136 +417,85 @@ module.exports = (function () {
         var arrivalPromises = [];
         var stopInd;
         for (stopInd = 0; stopInd < 5 && stopInd < stops.length; stopInd += 1) {
-          arrivalPromises.push(api.getArrivalsForStop(stops[stopInd].id));
+          arrivalPromises.push(api.getHeadsignsForStop(stops[stopInd].id));
         }
 
-        return arrivalPromises[0].then(function (data) {
-          // Closest stop
-          var message = util.format(Strings.ClosestStop, toMixedCase(stops[0].name));
-          message += '\n' + makeArrivalString(data.arrivals, data.now, 3);
-
-          var organized = organizeArrivalsByHeadsign(data.arrivals, data.now, 3);
-          return {message: message, primaryHeadsigns: organized.headsigns};
-        }, function (reason) {
-          // If we fail to get data on the nearest stop, we can't craft a
-          // very nice response. For now, just fail.
-          // TODO: We should be able to recover by providing arrivals from
-          // the next-closest stop.
-          throw reason;
-        })
-        .then(function (value) {
-          var message = value.message;
-          var primaryHeadsigns = value.primaryHeadsigns;
-          return Q.allResolved(arrivalPromises)
-          .then(function (promises) {
-            var data;
-
-            // seen keeps track of headsigns that we've encountered at stops
-            // closer to our target location.
-            var seen = {};
-
-            // novel holds information on headsigns that we should report to
-            // the user.
-            var novel = {};
-
-            // Process the first one separately. We shouldn't present those
-            // headsigns as options, since we've already provided the arrival
-            // times. But we don't want to duplicate the routes in the
-            // options, either.
-            if (promises[0].isFulfilled()) {
-              data = promises[0].valueOf();
-              data.arrivals.forEach(function (item) {
-                seen[item.tripHeadsign] = true;
-              });
-            } else {
-              throw promises[0].valueOf().exception;
-            }
-
-            var stopInd = 0;
-            promises.slice(1).forEach(function (promise) {
-              stopInd += 1;
-              // Skip the failed requests and move on
-              if (!promise.isFulfilled()) {
-                return;
-              }
-              data = promise.valueOf();
-
-              // Hang onto the info we need to later recall the arrivals for
-              // this stop and filter by a particular headsign.
-              var headsigns = {};
-              data.arrivals.forEach(function (entry) {
-                // Info needed to recall this arrival.
-                var info = headsigns[entry.headsign];
-                if (info === undefined) {
-                  info = {
-                    stopId: stops[stopInd].id,
-                    headsign: entry.headsign
-                  };
-                  headsigns[entry.headsign] = info;
-                }
-              });
-
-              // Keep the ones we haven't seen yet.
+        return Q.allResolved(arrivalPromises)
+        .then(function (promises) {
+          var stopsAndHeadsigns = [];
+          var headsignHash = {};
+          var rejectCount = 0;
+          promises.forEach(function (promise) {
+            if (promise.isFulfilled()) {
+              var stop = promise.valueOf();
+              var i;
               var headsign;
-              for (headsign in headsigns) {
-                if (headsigns.hasOwnProperty(headsign)) {
-                  // If we haven't encountered this headsign at another stop,
-                  // then let's add it.
-                  if (!seen.hasOwnProperty(headsign)) {
-                    novel[headsign] = headsigns[headsign];
-                    // Make sure we don't process the same headsign at a later stop.
-                    seen[headsign] = true;
-                  }
+              for (i = 0; i < stop.headsigns.length; i += 1) {
+                // Add unseen headsigns to the list.
+                headsign = compressWhitespace(stop.headsigns[i]);
+                if (!headsignHash.hasOwnProperty(headsign)) {
+                  headsignHash[headsign] = true;
+                  stopsAndHeadsigns.push({
+                    stopId: stop.stopId,
+                    headsign: headsign
+                  });
                 }
               }
-            });
-
-            // From the "extra" headsigns, create pieces of the message to
-            // present options the user, as well as context information, so
-            // we can continue the conversation.
-
-
-            var context = {
-              type: conversationTypes.multi,
-              choices: [],
-              actions: [],
-              params: []
-            };
-
-            var headsignList = [];
-            forEachKey(novel, function(headsign, info) {
-              headsignList.push(info);
-            });
-
-            // If there are no other options, just return the message we have so far.
-            if (headsignList.length === 0) {
-              return message;
+            } else {
+              rejectCount += 1;
             }
-
-            var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-            var optionsText = [];
-            var i = 0;
-            var j = 0;
-            while (j < letters.length && i < headsignList.length) {
-              if (!primaryHeadsigns.hasOwnProperty(headsignList[i].headsign)) {
-                optionsText.push(util.format(Strings.Option, letters[j], toMixedCase(headsignList[i].headsign)));
-                context.choices.push(letters[j]);
-                context.actions.push('arrivalsForStopAndHeadsign');
-                context.params.push(JSON.stringify(headsignList[i]));
-                j += 1;
-              }
-              i += 1;
-            }
-
-            // Save the session context.
-            sman.save(id, context);
-
-            // Other trip headsigns
-            message += '\n' + Strings.OtherCloseRoutes + '\n';
-            message += optionsText.join('\n');
-
-            return message;
           });
+
+          if (rejectCount === promises.length) {
+            // All of the promises were rejected.
+            throw new Error('Unable to get trip headsigns for nearby stops.');
+          }
+
+          if (stopsAndHeadsigns.length === 0) {
+            // We didn't find any trips at nearby stops. Probably the buses
+            // have stopped running around there.
+            return Strings.NoCloseRoutes;
+          }
+
+          // If there's only one headsign, just report arrivals, don't bother with a conversation.
+          if (stopsAndHeadsigns.length === 1) {
+            return Q.all([api.getStop(stopsAndHeadsigns[0].stopId), api.getArrivalsForStop(stopsAndHeadsigns[0].stopId)])
+            .spread(function (stop, data) {
+              var arrivals = data.arrivals.filter(function (item) {
+                return compressWhitespace(item.headsign) === stopsAndHeadsigns[0].headsign;
+              });
+
+              var message = util.format(Strings.SingleStop,
+                                        toMixedCase(stop.name),
+                                        makeArrivalString(arrivals, data.now, 5));
+              return message;
+            });
+          }
+
+          // We need context, so we can continue the conversation later.
+          var context = {
+            type: conversationTypes.multi,
+            choices: [],
+            actions: [],
+            params: []
+          };
+
+          var letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+          var optionsText = [];
+          var i = 0;
+          while (i < letters.length && i < stopsAndHeadsigns.length) {
+            optionsText.push(util.format(Strings.Option, letters[i], toMixedCase(stopsAndHeadsigns[i].headsign)));
+            context.choices.push(letters[i]);
+            context.actions.push('arrivalsForStopAndHeadsign');
+            context.params.push(JSON.stringify(stopsAndHeadsigns[i]));
+            i += 1;
+          }
+
+          // Save the session context.
+          sman.save(id, context);
+
+          var message = Strings.CloseRoutes + '\n' + optionsText.join('\n');
+          return message;
         });
       });
     });
