@@ -182,5 +182,47 @@ module.exports = (function () {
     return def.promise;
   };
 
+  // Get headsigns (route + direction) for a stop.
+  self.getHeadsignsForStop = function (stopId) {
+    var def = Q.defer();
+
+    var query = {
+      minutesBefore: 0,
+      minutesAfter: 90
+    };
+    request.get(apiUrl('arrivals-and-departures-for-stop', makeFullId(stopId), query),
+                function (error, resp, body) {
+      if (error || resp.statusCode !== 200) {
+        def.reject(error || new Error('Received status ' + resp.statusCode));
+        return;
+      }
+
+      var data = JSON.parse(body);
+
+      if (!data.data || !data.data.entry) {
+        def.reject(new Error('No results for stop ' + stopId));
+        return;
+      }
+
+      var headsigns = {}; // Make sure we don't repeat headsigns
+      var stop = {
+        stopId: data.data.entry.stopId,
+        headsigns: []
+      };
+
+      data.data.entry.arrivalsAndDepartures.forEach(function (item) {
+        var headsign = item.tripHeadsign;
+        if (!headsigns.hasOwnProperty(headsign)) {
+          stop.headsigns.push(headsign);
+          headsigns[headsign] = true;
+        }
+      });
+
+      def.resolve(stop);
+    });
+
+    return def.promise;
+  };
+
   return self;
 }());
