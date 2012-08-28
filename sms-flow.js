@@ -243,15 +243,15 @@ var conversationTypes = {
 var actions = {
   // Get the arrivals for the saved stop ID
   arrivalsForStop: function arrivalsForStop(stopId) {
-    return Q.all([api.getStop(stopId), api.getArrivalsForStop(stopId)])
-    .spread(function (stop, data) {
+    return api.getArrivalsForStop(stopId)
+    .then(function (data) {
       var formatString = Strings.SingleStop;
       if (hasSched(data.arrivals)) {
         formatString = Strings.SingleStopWithSched;
       }
       var message = util.format(formatString,
-                                toMixedCase(stop.name),
-                                makeArrivalString(data.arrivals, data.now, 5, stop.name));
+                                toMixedCase(data.stopName),
+                                makeArrivalString(data.arrivals, data.now, 5, data.stopName));
       return message;
     });
   },
@@ -261,15 +261,15 @@ var actions = {
   // info = JSON.stringify({stopId: 'someID', headsign: 'someHeadsign'})
   arrivalsForStopAndHeadsign: function arrivalsForStopAndHeadsign(infoJSON) {
     var info = JSON.parse(infoJSON);
-    return Q.all([api.getStop(info.stopId), api.getArrivalsForStop(info.stopId)])
-    .spread(function (stop, data) {
+    return api.getArrivalsForStop(info.stopId)
+    .then(function (data) {
       var formatString = Strings.SingleStop;
       var arrivals = data.arrivals.filter(function (item) {
         return compressWhitespace(item.headsign) === info.headsign;
       });
 
       var message = util.format(formatString,
-                                toMixedCase(stop.name),
+                                toMixedCase(data.stopName),
                                 makeArrivalString(arrivals, data.now, 5, data.stopName));
       return message;
     });
@@ -466,15 +466,15 @@ module.exports = (function () {
 
           // If there's only one headsign, just report arrivals, don't bother with a conversation.
           if (stopsAndHeadsigns.length === 1) {
-            return Q.all([api.getStop(stopsAndHeadsigns[0].stopId), api.getArrivalsForStop(stopsAndHeadsigns[0].stopId)])
-            .spread(function (stop, data) {
+            return api.getArrivalsForStop(stopsAndHeadsigns[0].stopId)
+            .then(function (data) {
               var arrivals = data.arrivals.filter(function (item) {
                 return compressWhitespace(item.headsign) === stopsAndHeadsigns[0].headsign;
               });
 
               var message = util.format(Strings.SingleStop,
-                                        toMixedCase(stop.name),
-                                        makeArrivalString(arrivals, data.now, 5, stop.name));
+                                        toMixedCase(data.stopName),
+                                        makeArrivalString(arrivals, data.now, 5, data.stopName));
               return message;
             });
           }
