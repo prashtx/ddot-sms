@@ -472,6 +472,15 @@ module.exports = (function () {
             });
           }
 
+          // Multiple headsigns, so let's sort them before we present them.
+          stopsAndHeadsigns.sort(function (a, b) {
+            var aNum = parseInt(a.headsign.split(' ')[0], 10);
+            var bNum = parseInt(b.headsign.split(' ')[0], 10);
+            if (aNum < bNum || isNaN(bNum)) { return -1; }
+            if (aNum > bNum || isNaN(aNum)) { return 1; }
+            return 0;
+          });
+
           // We need context, so we can continue the conversation later.
           var context = {
             type: conversationTypes.multi,
