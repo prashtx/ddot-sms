@@ -59,6 +59,9 @@ function distance(a, b) {
 module.exports = (function () {
   var self = {};
 
+  // We'll look for bus arrivals this many minutes into the future.
+  self.lookaheadTime = 90;
+
   // Get all of the routes, sorted.
   // Each entry contains name, shortName, and id.
   self.getRoutes = function () {
@@ -140,7 +143,7 @@ module.exports = (function () {
 
     var query = {
       minutesBefore: 0,
-      minutesAfter: 90
+      minutesAfter: self.lookaheadTime
     };
     request.get(apiUrl('arrivals-and-departures-for-stop', makeFullId(stopId), query),
                 function (error, resp, body) {
@@ -154,6 +157,17 @@ module.exports = (function () {
       if (!data.data || !data.data.entry) {
         def.reject(new Error('No results for stop ' + stopId));
         return def.promise;
+      }
+
+      // Get the stop name
+      var stopReferences = data.data.references.stops;
+      var stopName = null;
+      var i = 0;
+      while (i < stopReferences.length && stopName === null) {
+        if (stopReferences[i].id === data.data.entry.stopId) {
+          stopName = stopReferences[i].name;
+        }
+        i += 1;
       }
 
       var now = data.currentTime;
@@ -175,7 +189,8 @@ module.exports = (function () {
       .sort(function (a, b) { return a.arrival - b.arrival; });
       def.resolve({
         now: now,
-        arrivals: arrivals
+        arrivals: arrivals,
+        stopName: stopName
       });
     });
 
@@ -188,7 +203,7 @@ module.exports = (function () {
 
     var query = {
       minutesBefore: 0,
-      minutesAfter: 90
+      minutesAfter: self.lookaheadTime
     };
     request.get(apiUrl('arrivals-and-departures-for-stop', makeFullId(stopId), query),
                 function (error, resp, body) {

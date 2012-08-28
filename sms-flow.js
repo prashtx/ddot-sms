@@ -190,16 +190,23 @@ function organizeArrivalsByHeadsign(arrivals, now, max) {
 // arrivals: the array of arrivals as returned by ddotapi
 // now: the current time as reported by the API
 // max (optional): the maximum number of arrivals to include
-function makeArrivalString(arrivals, now, max) {
+// stopName: the name of the stop in question
+function makeArrivalString(arrivals, now, max, stopName) {
   // Filter out predictions for past arrivals, which might see if a bus is
   // ahead of schedule.
   arrivals = arrivals.filter(function (entry) {
     return entry.arrival > now;
   });
 
+  // Make the stop name legible.
+  if (stopName === undefined) {
+    stopName = max;
+  }
+  stopName = toMixedCase(stopName);
+
   if (arrivals.length === 0) {
     // If there are no arrivals at all, say so.
-    return Strings.NoArrivals;
+    return util.format(Strings.NoArrivals, api.lookaheadTime, stopName);
   }
 
   // Organize by headsign
@@ -244,7 +251,7 @@ var actions = {
       }
       var message = util.format(formatString,
                                 toMixedCase(stop.name),
-                                makeArrivalString(data.arrivals, data.now, 5));
+                                makeArrivalString(data.arrivals, data.now, 5, stop.name));
       return message;
     });
   },
@@ -263,7 +270,7 @@ var actions = {
 
       var message = util.format(formatString,
                                 toMixedCase(stop.name),
-                                makeArrivalString(arrivals, data.now, 5));
+                                makeArrivalString(arrivals, data.now, 5, data.stopName));
       return message;
     });
   }
@@ -387,7 +394,7 @@ module.exports = (function () {
         // Fetch the arrival time info
         var stopPromise = api.getArrivalsForStop(stopId)
         .then(function (data) {
-          return makeArrivalString(data.arrivals, data.now, 5);
+          return makeArrivalString(data.arrivals, data.now, 5, data.stopName);
         })
         .fail(function (reason) {
           console.log(reason.message);
@@ -467,7 +474,7 @@ module.exports = (function () {
 
               var message = util.format(Strings.SingleStop,
                                         toMixedCase(stop.name),
-                                        makeArrivalString(arrivals, data.now, 5));
+                                        makeArrivalString(arrivals, data.now, 5, stop.name));
               return message;
             });
           }
