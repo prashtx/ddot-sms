@@ -38,7 +38,10 @@ app.post('/twilio', function (req, res) {
 
   var to = req.body.To || '';
   // Mask the user's phone number
-  var from = crc.hex32(crc.crc32(req.body.From || '0'));
+  var from = '0';
+  if (req.body.From !== undefined) {
+    from = crc.hex32(crc.crc32(req.body.From));
+  }
 
   console.log('\nInbound message info:');
   console.log(JSON.stringify({ from: from, to: to, body: initialText }));
@@ -88,7 +91,10 @@ app.post('/tropo', function (req, res) {
     to = '';
   }
   // Mask the user's phone number
-  var from = crc.hex32(crc.crc32(session.from.id || '0'));
+  var from = '0';
+  if (session.from.id !== undefined) {
+    from = crc.hex32(crc.crc32(session.from.id));
+  }
   var initialText = session.initialText.trim();
 
   console.log('\nInbound message info:');

@@ -18,17 +18,30 @@ function kissHandler(err) {
   }
 }
 
+function record(user, event, callback) {
+  // Ignore the default user ID, which we use for testing
+  if (user === '0') {
+    return;
+  }
+
+  if (callback === undefined) {
+    callback = kissHandler;
+  }
+
+  kissClient.record(user, event, callback);
+}
+
 var metrics = {
   message: function (user) {
-    kissClient.record(user, 'Sent Message', kissHandler);
+    record(user, 'Sent Message', kissHandler);
   },
 
   conversationContinue: function (user) {
-    kissClient.record(user, 'Continued Conversation', kissHandler);
+    record(user, 'Continued Conversation', kissHandler);
   },
 
   stopID: function (user) {
-    kissClient.record(user, 'Sent Stop ID', kissHandler);
+    record(user, 'Sent Stop ID', kissHandler);
   }
 
 };
