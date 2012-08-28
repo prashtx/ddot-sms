@@ -4,6 +4,7 @@
 module.exports = {
   GenericFailMessage: 'Sorry! I couldn\'t process that. Try something like:\nwoodward and mack',
   NoArrivals: 'Sorry, I don\'t see anything for that stop',
+  Arrivals: '%s:\n%s min',
   ClosestStop: 'Closest stop: %s.',
   CloseRoutes: 'Please send the letter of the bus you\'d like:',
   NoCloseRoutes: 'Sorry, I don\'t see any active routes nearby.',

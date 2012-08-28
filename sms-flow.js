@@ -213,7 +213,7 @@ function makeArrivalString(arrivals, now, max) {
     if (times.length === 0) { return; }
 
     var timeString = times.join(', ');
-    var arrivalString = util.format('%s: %s min', compressWhitespace(toMixedCase(headsign)), timeString);
+    var arrivalString = util.format(Strings.Arrivals, compressWhitespace(toMixedCase(headsign)), timeString);
     arrivalSets.push(arrivalString);
   });
 
