@@ -4,7 +4,7 @@
 module.exports = {
   GenericFailMessage: 'Sorry! I couldn\'t process that. Try something like:\nwoodward and mack',
   NoArrivals: 'Sorry, I don\'t see buses in the next %s minutes for %s.\nCall (888) DDOT-BUS for information.', // lookahead time, stop name
-  Arrivals: '%s:\n%s min',
+  Arrivals: '%s:\n%s',
   ClosestStop: 'Closest stop: %s.',
   CloseRoutes: 'Please send the letter of the bus you\'d like:',
   NoCloseRoutes: 'Sorry, I don\'t see any active routes nearby.',
@@ -13,5 +13,7 @@ module.exports = {
   SingleStop: '@ %s\n%s', // Stop name, arrivals
   SingleStopWithSched: '@ %s, %s *scheduled', // Stop name, arrivals
   MiscWithSched: '%s *scheduled',
+  TimeMinutes: '%s min',
+  TimeMinutesSchedule: '%s* min',
   Option: '%s) %s' // Letter, meaning
 };

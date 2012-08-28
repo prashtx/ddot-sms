@@ -171,10 +171,13 @@ function organizeArrivalsByHeadsign(arrivals, now, max) {
     }
 
     // Milliseconds to minutes.
-    var timeString = Math.floor((entry.arrival - now) / 60000).toString();
-    if (!entry.predicted) {
+    var time = Math.floor((entry.arrival - now) / 60000);
+    var timeString;
+    if (entry.predicted) {
+      timeString = util.format(Strings.TimeMinutes, time);
+    } else {
       // Indicate schedule-only data.
-      timeString += '*';
+      timeString = util.format(Strings.TimeMinutesSchedule, time);
       scheduled = true;
     }
     times.push(timeString);
@@ -251,7 +254,7 @@ var actions = {
       }
       var message = util.format(formatString,
                                 toMixedCase(data.stopName),
-                                makeArrivalString(data.arrivals, data.now, 5, data.stopName));
+                                makeArrivalString(data.arrivals, data.now, 3, data.stopName));
       return message;
     });
   },
@@ -270,7 +273,7 @@ var actions = {
 
       var message = util.format(formatString,
                                 toMixedCase(data.stopName),
-                                makeArrivalString(arrivals, data.now, 5, data.stopName));
+                                makeArrivalString(arrivals, data.now, 3, data.stopName));
       return message;
     });
   }
@@ -394,7 +397,7 @@ module.exports = (function () {
         // Fetch the arrival time info
         var stopPromise = api.getArrivalsForStop(stopId)
         .then(function (data) {
-          return makeArrivalString(data.arrivals, data.now, 5, data.stopName);
+          return makeArrivalString(data.arrivals, data.now, 3, data.stopName);
         })
         .fail(function (reason) {
           console.log(reason.message);
@@ -474,7 +477,7 @@ module.exports = (function () {
 
               var message = util.format(Strings.SingleStop,
                                         toMixedCase(data.stopName),
-                                        makeArrivalString(arrivals, data.now, 5, data.stopName));
+                                        makeArrivalString(arrivals, data.now, 3, data.stopName));
               return message;
             });
           }
