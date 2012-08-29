@@ -397,7 +397,9 @@ module.exports = (function () {
         // Fetch the arrival time info
         var stopPromise = api.getArrivalsForStop(stopId)
         .then(function (data) {
-          return makeArrivalString(data.arrivals, data.now, 3, data.stopName);
+          return util.format(Strings.SingleStop,
+                             toMixedCase(data.stopName),
+                             makeArrivalString(data.arrivals, data.now, 3, data.stopName));
         })
         .fail(function (reason) {
           console.log(reason.message);
