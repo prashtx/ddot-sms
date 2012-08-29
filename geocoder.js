@@ -16,6 +16,7 @@ var yahoo = require('./geocoder-yahoo.js');
 var nominatim = require('./geocoder-nominatum.js');
 var google = require('./geocoder-google.js');
 var cache = require('./geocoder-cache.js');
+var metrics = require('./metrics.js');
 
 var minYahooQuality = 40;
 
@@ -92,6 +93,7 @@ module.exports = (function () {
       }
 
       // Cache miss. Try Google Maps.
+      metrics.cacheMiss();
       return self.googleCode(line1, line2);
     })
     .fail(function (reason) {

@@ -42,6 +42,10 @@ var metrics = {
 
   stopID: function (user) {
     record(user, 'Sent Stop ID', kissHandler);
+  },
+
+  cacheMiss: function () {
+    record('NO USER RECORDED', 'Cache Miss', kissHandler);
   }
 
 };
