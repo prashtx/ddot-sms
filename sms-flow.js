@@ -427,6 +427,8 @@ module.exports = (function () {
           throw new Error('No stops found. Probably the geocoder was way off.');
         }
 
+        console.log('Got nearby stops from API');
+
         // Get arrivals for the nearest 5 stops.
         var arrivalPromises = [];
         var stopInd;
@@ -436,6 +438,7 @@ module.exports = (function () {
 
         return Q.allResolved(arrivalPromises)
         .then(function (promises) {
+          console.log('Got arrivals from API');
           var stopsAndHeadsigns = [];
           var headsignHash = {};
           var rejectCount = 0;
