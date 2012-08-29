@@ -69,6 +69,13 @@ app.post('/twilio', function (req, res) {
   });
 });
 
+app.post('/tropo-switch', function (req, res) {
+  console.log('Got a message to a deprecated number. Sending the deprecation message.');
+  var tropo = new tropowebapi.TropoWebAPI();
+  tropo.say(Strings.NumberSwitch);
+  res.send(tropowebapi.TropoJSON(tropo));
+});
+
 app.post('/tropo', function (req, res) {
   var startTime = Date.now();
   var tropo = new tropowebapi.TropoWebAPI();

@@ -15,5 +15,6 @@ module.exports = {
   MiscWithSched: '%s *scheduled',
   TimeMinutes: '%s min',
   TimeMinutesSchedule: '%s* min',
-  Option: '%s) %s' // Letter, meaning
+  Option: '%s) %s', // Letter, meaning
+  NumberSwitch: 'Hi! We\'re switching to a new, better number. Please send your location or bus stop ID to 50464 from now on. Go ahead, give it a try!'
 };
