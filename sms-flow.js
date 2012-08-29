@@ -414,9 +414,11 @@ module.exports = (function () {
 
       // Non-numeric. Treat it as a location.
 
+      var geocoderStartTime = Date.now();
       // Get lon-lat for the specified location
       return geocoder.code(sms, 'Detroit, MI')
       .then(function (coords) {
+        console.log(util.format('Geocoder: took %s ms',Date.now() - geocoderStartTime));
         // Get the nearby stops
         return api.getStopsForLocation(coords);
       })
