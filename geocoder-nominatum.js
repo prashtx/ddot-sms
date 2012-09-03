@@ -40,7 +40,10 @@ module.exports = (function () {
       if (data.length > 0) {
         var coords = {
           lat: data[0].lat,
-          lon: data[0].lon
+          lon: data[0].lon,
+          meta: {
+            service: 'Nominatim'
+          }
         };
         def.resolve(coords);
       } else {
