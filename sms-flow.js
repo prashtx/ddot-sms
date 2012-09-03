@@ -409,7 +409,7 @@ module.exports = (function () {
 
         // Track that the user sent a stop ID
         metrics.stopID(id);
-        logEntry.data.stopID = id;
+        logEntry.data.stopID = stopId;
 
         return stopPromise;
       }
