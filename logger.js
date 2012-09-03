@@ -12,7 +12,6 @@ var Q = require('q');
 var logURL = process.env.LOGGER_URL;
 
 var Entry = {
-  data: {},
   send: function () {
     var def = Q.defer();
 
@@ -31,7 +30,11 @@ var Entry = {
 
 function makeEntry(user) {
   var entry = Object.create(Entry);
-  entry.data.user = user;
+  entry.data = {
+    continuation: false,
+    error: false,
+    user: user
+  };
   return entry;
 }
 
