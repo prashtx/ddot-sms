@@ -348,7 +348,7 @@ function tryContinueMultiConversation(sms, context) {
 module.exports = (function () {
   var self = {};
 
-  self.respondToSms = function (sms, id) {
+  self.respondToSms = function (sms, id, logEntry) {
     // Look for the test keyword.
     if (keywordMatches(keywords.test, sms)) {
       return handleTestCommand(sms.substring(keywords.test.length));
@@ -377,6 +377,7 @@ module.exports = (function () {
       if (promise) {
         // Track that the user is continuing a conversation
         metrics.conversationContinue(id);
+        logEntry.data.continuation = true;
         return promise;
       }
 
@@ -408,6 +409,7 @@ module.exports = (function () {
 
         // Track that the user sent a stop ID
         metrics.stopID(id);
+        logEntry.data.stopID = id;
 
         return stopPromise;
       }
@@ -419,6 +421,11 @@ module.exports = (function () {
       return geocoder.code(sms, 'Detroit, MI')
       .then(function (coords) {
         console.log(util.format('Geocoder: took %s ms',Date.now() - geocoderStartTime));
+        logEntry.data.lon = coords.lon;
+        logEntry.data.lat = coords.lat;
+        if (coords.meta !== undefined && coords.meta.service !== undefined) {
+          logEntry.data.geocoder = coords.meta.service;
+        }
         // Get the nearby stops
         return api.getStopsForLocation(coords);
       })

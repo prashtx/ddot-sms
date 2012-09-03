@@ -50,7 +50,10 @@ module.exports = (function () {
           var location = data.results[0].geometry.location;
           var coords = {
             lat: location.lat,
-            lon: location.lng
+            lon: location.lng,
+            meta: {
+              service: 'Google'
+            }
           };
           def.resolve(coords);
         } else if (data.status === 'OVER_QUERY_LIMIT') {

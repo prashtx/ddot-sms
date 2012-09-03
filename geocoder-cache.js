@@ -150,7 +150,10 @@ module.exports = (function () {
       // Resolve with the coordinates.
       return {
         lon: entry.lon,
-        lat: entry.lat
+        lat: entry.lat,
+        meta: {
+          service: 'cache'
+        }
       };
     })
     .fail(function (err) {

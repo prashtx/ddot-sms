@@ -80,6 +80,16 @@ module.exports = {
     }
 
     return sms(arr);
+  },
+
+  // Count the number of outbound messages in the TwiML response.
+  countMessages: function (xml) {
+    var re = /<Sms>/g;
+    var arr = xml.match(re);
+    if (arr === null) {
+      return 0;
+    }
+    return arr.length;
   }
 }
 
