@@ -11,6 +11,7 @@ var crc = require('crc');
 var Strings = require('./strings.js');
 var smsflow = require('./sms-flow.js');
 var twilio = require('./twilio.js');
+var logger = require('./logger.js');
 
 var app = express();
 var server = http.createServer(app);
@@ -43,13 +44,22 @@ app.post('/twilio', function (req, res) {
     from = crc.hex32(crc.crc32(req.body.From));
   }
 
+  // Record information for the log.
+  var logEntry = logger.makeEntry(from);
+  logEntry.data.message = initialText;
+
   console.log('\nInbound message info:');
   console.log(JSON.stringify({ from: from, to: to, body: initialText }));
 
-  smsflow.respondToSms(initialText, from)
+  smsflow.respondToSms(initialText, from, logEntry)
   .then(function (message) {
     var twiML = twilio.sms(message);
     twilio.sendTwiML(res, twiML);
+
+    logEntry.data.responseCount = twilio.countMessages(twiML);
+
+    // Log the recorded data to the logger web service
+    logEntry.send();
 
     console.log('Outbound message info:');
     console.log(twiML);
@@ -62,6 +72,11 @@ app.post('/twilio', function (req, res) {
 
     var twiML = twilio.sms(Strings.GenericFailMessage);
     twilio.sendTwiML(res, twiML);
+
+    logEntry.data.error = true;
+
+    // Log the recorded data to the logger web service
+    logEntry.send();
 
     console.log('Outbound message info:');
     console.log(twiML);
@@ -104,10 +119,12 @@ app.post('/tropo', function (req, res) {
   }
   var initialText = session.initialText.trim();
 
+  var logEntry = logger.makeEntry(from);
+
   console.log('\nInbound message info:');
   console.log(JSON.stringify({ from: from, to: to, body: initialText }));
 
-  smsflow.respondToSms(initialText, from)
+  smsflow.respondToSms(initialText, from, logEntry)
   .then(function (message) {
     tropo.say(message);
     var jsonOut = tropowebapi.TropoJSON(tropo);

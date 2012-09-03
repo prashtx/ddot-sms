@@ -40,7 +40,10 @@ module.exports = (function () {
         var coords = {
           lat: data.ResultSet.Results[0].latitude,
           lon: data.ResultSet.Results[0].longitude,
-          meta: { quality: data.ResultSet.Results[0].quality }
+          meta: {
+            quality: data.ResultSet.Results[0].quality,
+            service: 'Yahoo'
+          }
         };
         def.resolve(coords);
       } catch (e) {
