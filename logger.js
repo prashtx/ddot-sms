@@ -32,6 +32,7 @@ var Entry = {
 function makeEntry(user) {
   var entry = Object.create(Entry);
   entry.data.user = user;
+  return entry;
 }
 
 module.exports = {
