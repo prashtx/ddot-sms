@@ -26,7 +26,9 @@ var greetings = [
   'Hi',
   'Hey',
   'HELP',
-  'How long'
+  'How long',
+  'My Bus',
+  'mybus'
 ];
 
 function keywordMatches(keyword, str) {
