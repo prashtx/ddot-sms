@@ -16,12 +16,25 @@ var keywords = {
   routes: 'routes'
 };
 
+// Greetings and shots-in-the-dark
+// We should respond to these with something friendly, rather than trying to
+// geocode them.
+var greetings = [
+  'TextMyBus',
+  'Text My Bus',
+  'Hello',
+  'Hi',
+  'Hey',
+  'HELP',
+  'How long'
+];
+
 function keywordMatches(keyword, str) {
   function check(kw) {
     var s = str.trimLeft();
-    return (s.length >= keyword.length &&
-            (s.substring(0, keyword.length).toLocaleLowerCase() ===
-             keyword.toLocaleLowerCase()));
+    return (s.length >= kw.length &&
+            (s.substring(0, kw.length).toLocaleLowerCase() ===
+             kw.toLocaleLowerCase()));
   }
   if (util.isArray(keyword)) {
     return keyword.some(check);
@@ -352,6 +365,11 @@ module.exports = (function () {
     // Look for the test keyword.
     if (keywordMatches(keywords.test, sms)) {
       return handleTestCommand(sms.substring(keywords.test.length));
+    }
+
+    // Look for a greeting or shot-in-the-dark message.
+    if (keywordMatches(greetings, sms)) {
+      return Q.resolve(Strings.Greeting);
     }
 
     // Track that we got a message

@@ -3,6 +3,7 @@
 // TODO: read the strings in from a JSON or YAML file
 module.exports = {
   GenericFailMessage: 'Sorry! I couldn\'t process that. Please send an address or intersection near you. For example:\nwoodward and warren',
+  Greeting: 'Hi! To find active bus routes, please send an address or intersection near you. For example:\nwoodward and warren',
   NoArrivals: 'Sorry, I don\'t see buses in the next %s minutes for %s.\nCall (888) DDOT-BUS for information.', // lookahead time, stop name
   Arrivals: '%s:\n%s',
   ClosestStop: 'Closest stop: %s.',
