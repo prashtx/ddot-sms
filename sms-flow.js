@@ -25,11 +25,18 @@ var greetings = [
   'Hello',
   'Hi',
   'Hey',
-  'HELP',
   'How long',
   'My Bus',
-  'mybus'
+  'mybus',
+  '50464'
 ];
+
+var helpKeywords = [
+  'HELP',
+  'FitVIP'
+];
+
+var stopKeyword = 'STOP';
 
 function keywordMatches(keyword, str) {
   function check(kw) {
@@ -364,6 +371,16 @@ module.exports = (function () {
   var self = {};
 
   self.respondToSms = function (sms, id, logEntry) {
+    // Look for the short code HELP keyword.
+    if (keywordMatches(helpKeywords, sms)) {
+      return Q.resolve(Strings.ShortCodeHelp);
+    }
+
+    // Look for the short code STOP keyword.
+    if (keywordMatches(stopKeyword, sms)) {
+      return Q.resolve(Strings.ShortCodeStop);
+    }
+    
     // Look for the test keyword.
     if (keywordMatches(keywords.test, sms)) {
       return handleTestCommand(sms.substring(keywords.test.length));
