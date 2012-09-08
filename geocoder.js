@@ -78,6 +78,10 @@ module.exports = (function () {
     })
     .fail(function (reason) {
       console.log(reason.message);
+      if (reason.name === 'BadLocationError') {
+        // If Google choked on this location, then we assume it is invalid.
+        throw reason;
+      }
       // We've used Google too recently or something went wrong. Try the
       // Yahoo/Nominatum combo.
       return self.comboCode(line1, line2);
@@ -95,8 +99,7 @@ module.exports = (function () {
       // Cache miss. Try Google Maps.
       metrics.cacheMiss();
       return self.googleCode(line1, line2);
-    })
-    .fail(function (reason) {
+    }, function (reason) {
       // Cache error.
       console.log('Error in cache.get:');
       console.log(reason.message);

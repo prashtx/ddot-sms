@@ -48,14 +48,24 @@ module.exports = (function () {
         var data = JSON.parse(body);
         if (data.status === 'OK') {
           var location = data.results[0].geometry.location;
-          var coords = {
-            lat: location.lat,
-            lon: location.lng,
-            meta: {
-              service: 'Google'
-            }
-          };
-          def.resolve(coords);
+          // See if Google has returned it's default Detroit location, which
+          // most likely indicates that it did not understand the
+          // address/intersection.
+          if (location.lat === 42.331427 && location.lng === -83.0457538) {
+            def.reject({
+              name: 'BadLocationError',
+              message: 'Google gave us the default location'
+            });
+          } else {
+            var coords = {
+              lat: location.lat,
+              lon: location.lng,
+              meta: {
+                service: 'Google'
+              }
+            };
+            def.resolve(coords);
+          }
         } else if (data.status === 'OVER_QUERY_LIMIT') {
           // We've been rate-limited by Google
           def.reject({
