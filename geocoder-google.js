@@ -61,7 +61,7 @@ module.exports = (function () {
               name: 'BadLocationError',
               message: 'Google gave us the default Dearborn location'
             });
-          } else if (location.lat < 42.26923 || location.lat > 42.465563 || location.lng < -82.907982 || location.lng > -83.268471) {
+          } else if (location.lat < 42.26923 || location.lat > 42.465563 || location.lng > -82.907982 || location.lng < -83.268471) {
             def.reject({
               name: 'BadLocationError',
               message: 'Google gave us an out-of-bounds location'
