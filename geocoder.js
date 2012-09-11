@@ -19,19 +19,20 @@ var cache = require('./geocoder-cache.js');
 var metrics = require('./metrics.js');
 
 var minYahooQuality = 40;
+var detroit = 'Detroit, MI';
 var dearborn = 'Dearborn, MI';
 
 module.exports = (function () {
   var self = {};
 
-  self.comboCode = function (line1, line2) {
-    return yahoo.code(line1, line2)
+  self.comboCode = function (line1) {
+    return yahoo.code(line1, detroit)
     .then(function (coords) {
       // Check if the Yahoo Placefinder result meets the quality bar.
       if (coords.meta.quality >= minYahooQuality) {
         console.log('Geocoder: using Yahoo Placefinder');
         // Add to cache.
-        cache.add(line1, line2, coords);
+        cache.add(line1, detroit, coords);
         return coords;
       }
 
@@ -39,8 +40,9 @@ module.exports = (function () {
       .then(function (coords) {
         if (coords.meta.quality >= minYahooQuality) {
           console.log('Geocoder: using Yahoo Placefinder Dearborn');
-          // Add to cache.
-          cache.add(line1, line2, coords);
+          // Add to cache with detroit, since that's how we'll look it up
+          // later.
+          cache.add(line1, detroit, coords);
           return coords;
         }
 
@@ -53,7 +55,7 @@ module.exports = (function () {
     .fail(function (reason) {
       console.log('Yahoo Placefinder failed: ' + reason.message);
       // Yahoo Placefinder failed, so use Nominatim.
-      return nominatim.code(line1, line2)
+      return nominatim.code(line1, detroit)
       .then(function (coords) {
         console.log('Geocoder: using Nominatim');
         return coords;
@@ -67,9 +69,9 @@ module.exports = (function () {
     });
   };
 
-  self.googleCode = function (line1, line2) {
-    return google.code(line1, line2).then(function (coords) {
-      cache.add(line1, line2, coords);
+  self.googleCode = function (line1) {
+    return google.code(line1, detroit).then(function (coords) {
+      cache.add(line1, detroit, coords);
       console.log('Geocoder: using Google Maps');
       return coords;
     })
@@ -79,7 +81,9 @@ module.exports = (function () {
         // If Google choked on this location, then try outside Detroit-proper.
         return google.code(line1, dearborn)
         .then(function (coords) {
-          cache.add(line1, line2, coords);
+          // Add to cache with detroit, since that's how we'll look it up next
+          // time.
+          cache.add(line1, detroit, coords);
           console.log('Geocoder: using Google Maps Dearborn');
           return coords;
         })
@@ -91,18 +95,18 @@ module.exports = (function () {
           }
           // We've used Google too recently or something went wrong. Try the
           // Yahoo/Nominatum combo.
-          return self.comboCode(line1, line2);
+          return self.comboCode(line1);
         });
       }
       // We've used Google too recently or something went wrong. Try the
       // Yahoo/Nominatum combo.
-      return self.comboCode(line1, line2);
+      return self.comboCode(line1);
     });
   };
 
-  self.code = function (line1, line2) {
+  self.code = function (line1) {
     // Check the cache
-    return cache.get(line1, line2).then(function (cachedCoords) {
+    return cache.get(line1, detroit).then(function (cachedCoords) {
       if (cachedCoords !== null) {
         console.log('Geocoder: using cache');
         return cachedCoords;
@@ -110,14 +114,14 @@ module.exports = (function () {
 
       // Cache miss. Try Google Maps.
       metrics.cacheMiss();
-      return self.googleCode(line1, line2);
+      return self.googleCode(line1);
     }, function (reason) {
       // Cache error.
       console.log('Error in cache.get:');
       console.log(reason.message);
 
       // Try Google Maps.
-      return self.googleCode(line1, line2);
+      return self.googleCode(line1);
     });
   };
 
