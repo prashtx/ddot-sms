@@ -54,7 +54,17 @@ module.exports = (function () {
           if (location.lat === 42.331427 && location.lng === -83.0457538) {
             def.reject({
               name: 'BadLocationError',
-              message: 'Google gave us the default location'
+              message: 'Google gave us the default Detroit location'
+            });
+          } else if (location.lat === 42.3222599 && location.lng === -83.17631449999999) {
+            def.reject({
+              name: 'BadLocationError',
+              message: 'Google gave us the default Dearborn location'
+            });
+          } else if (location.lat < 42.26923 || location.lat > 42.465563 || location.lng < -82.907982 || location.lng > -83.268471) {
+            def.reject({
+              name: 'BadLocationError',
+              message: 'Google gave us an out-of-bounds location'
             });
           } else {
             var coords = {

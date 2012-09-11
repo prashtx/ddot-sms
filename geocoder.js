@@ -19,54 +19,51 @@ var cache = require('./geocoder-cache.js');
 var metrics = require('./metrics.js');
 
 var minYahooQuality = 40;
+var dearborn = 'Dearborn, MI';
 
 module.exports = (function () {
   var self = {};
 
   self.comboCode = function (line1, line2) {
-    var yahooPromise = yahoo.code(line1, line2);
-    var nominatimPromise = nominatim.code(line1, line2);
-
-    console.log('Geocoder: using Yahoo+Nominatim');
-
-    return yahooPromise.then(function (yahooResult) {
+    return yahoo.code(line1, line2)
+    .then(function (coords) {
       // Check if the Yahoo Placefinder result meets the quality bar.
-      if (yahooResult.meta.quality >= minYahooQuality) {
+      if (coords.meta.quality >= minYahooQuality) {
         console.log('Geocoder: using Yahoo Placefinder');
-        return yahooResult;
+        // Add to cache.
+        cache.add(line1, line2, coords);
+        return coords;
       }
 
-      // If we got a fuzzy response from Yahoo, then let's process the Nominatim response.
-      return nominatimPromise.then(function (nominatimResult) {
-        // Nominatim succeeded, and Yahoo was below the quality bar, so let's
-        // use Nominatim.
-        console.log('Geocoder: using Nominatim');
-        return nominatimResult;
-      })
-      .fail(function (reason) {
-        // Nominatim failed, so we'll use Yahoo regardless of the quality.
-        console.log('Nominatum failed: ' + reason.message);
-        console.log('Geocoder: using Yahoo Placefinder');
-        return yahooResult;
+      return yahoo.code(line1, dearborn)
+      .then(function (coords) {
+        if (coords.meta.quality >= minYahooQuality) {
+          console.log('Geocoder: using Yahoo Placefinder Dearborn');
+          // Add to cache.
+          cache.add(line1, line2, coords);
+          return coords;
+        }
+
+        throw {
+          name: 'BadLocationError',
+          message: 'Yahoo gave us a low-quality location'
+        };
       });
     })
     .fail(function (reason) {
       console.log('Yahoo Placefinder failed: ' + reason.message);
-      // Yahoo Placefinder failed altogether, so we have no choice left but to
-      // use Nominatim.
-      console.log('Geocoder: using Nominatim');
-      return nominatimPromise;
-    })
-    .then(function (coords) {
-      // Add to cache.
-      cache.add(line1, line2, coords);
-      return coords;
-    })
-    .fail(function (reason) {
-      // All geocoders failed!
-      console.log(reason.message);
-      console.log('All geocoders failed!');
-      throw reason;
+      // Yahoo Placefinder failed, so use Nominatim.
+      return nominatim.code(line1, line2)
+      .then(function (coords) {
+        console.log('Geocoder: using Nominatim');
+        return coords;
+      })
+      .fail(function (reason) {
+        // All geocoders failed!
+        console.log(reason.message);
+        console.log('All geocoders failed!');
+        throw reason;
+      });
     });
   };
 
@@ -79,8 +76,23 @@ module.exports = (function () {
     .fail(function (reason) {
       console.log(reason.message);
       if (reason.name === 'BadLocationError') {
-        // If Google choked on this location, then we assume it is invalid.
-        throw reason;
+        // If Google choked on this location, then try outside Detroit-proper.
+        return google.code(line1, dearborn)
+        .then(function (coords) {
+          cache.add(line1, line2, coords);
+          console.log('Geocoder: using Google Maps Dearborn');
+          return coords;
+        })
+        .fail(function (reason) {
+          console.log(reason.message);
+          // If we still get a bad location, then give up.
+          if (reason.name === 'BadLocationError') {
+            throw reason;
+          }
+          // We've used Google too recently or something went wrong. Try the
+          // Yahoo/Nominatum combo.
+          return self.comboCode(line1, line2);
+        });
       }
       // We've used Google too recently or something went wrong. Try the
       // Yahoo/Nominatum combo.
