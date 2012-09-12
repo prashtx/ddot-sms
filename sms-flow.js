@@ -309,7 +309,7 @@ function handleTestCommand(cmd) {
 
   if (keywordMatches(keywords.near, cmd)) {
     // Get lon-lat for the specified location
-    return geocoder.code(cmd.substring(keywords.near.length), 'Detroit, MI')
+    return geocoder.code(cmd.substring(keywords.near.length))
     .then(function (coords) {
       // Get the nearby stops
       return api.getStopsForLocation(coords);
@@ -455,7 +455,7 @@ module.exports = (function () {
 
       var geocoderStartTime = Date.now();
       // Get lon-lat for the specified location
-      return geocoder.code(sms, 'Detroit, MI')
+      return geocoder.code(sms)
       .then(function (coords) {
         console.log(util.format('Geocoder: took %s ms',Date.now() - geocoderStartTime));
         logEntry.data.lon = coords.lon;
