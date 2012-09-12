@@ -21,6 +21,9 @@ var metrics = require('./metrics.js');
 var minYahooQuality = 40;
 var detroit = 'Detroit, MI';
 var dearborn = 'Dearborn, MI';
+var highlandpark = 'Highland Park, MI';
+var hamtramck = 'Hamtramck, MI';
+var harperwoods = 'Harper Woods, MI';
 
 module.exports = (function () {
   var self = {};
@@ -36,20 +39,37 @@ module.exports = (function () {
         return coords;
       }
 
-      return yahoo.code(line1, dearborn)
-      .then(function (coords) {
-        if (coords.meta.quality >= minYahooQuality) {
-          console.log('Geocoder: using Yahoo Placefinder Dearborn');
-          // Add to cache with detroit, since that's how we'll look it up
-          // later.
-          cache.add(line1, detroit, coords);
-          return coords;
-        }
+      var promises = [dearborn, highlandpark, hamtramck, harperwoods].map(function (city) {
+        return yahoo.code(line1, city);
+      });
 
-        throw {
-          name: 'BadLocationError',
-          message: 'Yahoo gave us a low-quality location'
-        };
+      return Q.allResolved(promises)
+      .then(function (promises) {
+        var bestCoords;
+        promises.forEach(function (promise) {
+          if (promise.isFulfilled()) {
+            var coords = promise.valueOf();
+            if (bestCoords === undefined || coords.meta.quality > bestCoords.meta.quality) {
+              bestCoords = coords;
+            }
+          }
+        });
+        if (bestCoords === undefined) {
+          throw new Error('No results from Yahoo for other cities');
+        } else {
+          if (bestCoords.meta.quality >= minYahooQuality) {
+            console.log('Geocoder: using Yahoo Placefinder for ' + bestCoords.meta.line2);
+            // Add to cache with detroit, since that's how we'll look it up
+            // later.
+            cache.add(line1, detroit, bestCoords);
+            return bestCoords;
+          }
+
+          throw {
+            name: 'BadLocationError',
+            message: 'Yahoo gave us a low-quality location'
+          };
+        }
       });
     })
     .fail(function (reason) {
