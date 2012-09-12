@@ -14,6 +14,7 @@ module.exports = {
   OtherCloseStops: 'Send letter for:',
   OtherCloseRoutes: 'Send letter for:',
   SingleStop: '@ %s\n%s', // Stop name, arrivals
+  SingleStopWithId: '@ %s\n%s\nShortcut: text %s to 50464', // Stop name, arrivals, stop ID
   SingleStopWithSched: '@ %s, %s *scheduled', // Stop name, arrivals
   MiscWithSched: '%s *scheduled',
   TimeMinutes: '%s min',

@@ -163,6 +163,17 @@ function stripSignature(msg) {
   return msg;
 }
 
+// Strip the agency from the stop ID, leaving only the numeric ID.
+// If the ID includes the agency, it will look like 'DDOT_10023', otherwise, it
+// will look like '10023'.
+function stripAgency(stopId) {
+  var parts = stopId.split('_');
+  if (parts.length === 1) {
+    return parts[0];
+  }
+  return parts[1];
+}
+
 // Determine if any of the arrival times are based on schedule data (as opposed
 // to predicted, real-time data).
 function hasSched(arrivals) {
@@ -288,14 +299,15 @@ var actions = {
     var info = JSON.parse(infoJSON);
     return api.getArrivalsForStop(info.stopId)
     .then(function (data) {
-      var formatString = Strings.SingleStop;
+      var formatString = Strings.SingleStopWithId;
       var arrivals = data.arrivals.filter(function (item) {
         return compressWhitespace(item.headsign) === info.headsign;
       });
 
       var message = util.format(formatString,
                                 toMixedCase(data.stopName),
-                                makeArrivalString(arrivals, data.now, 3, data.stopName));
+                                makeArrivalString(arrivals, data.now, 3, data.stopName),
+                                stripAgency(info.stopId));
       return message;
     });
   }
