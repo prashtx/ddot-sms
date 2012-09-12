@@ -42,7 +42,8 @@ module.exports = (function () {
           lon: data.ResultSet.Results[0].longitude,
           meta: {
             quality: data.ResultSet.Results[0].quality,
-            service: 'Yahoo'
+            service: 'Yahoo',
+            line2: line2
           }
         };
         def.resolve(coords);
