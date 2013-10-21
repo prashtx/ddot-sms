@@ -398,6 +398,11 @@ module.exports = (function () {
       return handleTestCommand(sms.substring(keywords.test.length));
     }
 
+    // If the buses aren't running, well, then the app has an easy job.
+    if (process.env.NOBUSES) {
+      return Q.resolve(Strings.NotRunning);
+    }
+
     // Look for a greeting or shot-in-the-dark message.
     if (keywordMatches(greetings, sms)) {
       return Q.resolve(Strings.Greeting);

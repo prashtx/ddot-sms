@@ -2,6 +2,7 @@
 
 // TODO: read the strings in from a JSON or YAML file
 module.exports = {
+  NotRunning: 'Sorry! DDOT buses are not running today. Contact DDOT at (888) DDOT-BUS for information.',
   GenericFailMessage: 'Sorry! I couldn\'t process that. Please send an address or intersection near you. For example:\nwoodward and warren',
   Greeting: 'Hi! To find active bus routes, please send an address or intersection near you. For example:\nwoodward and warren',
   ShortCodeHelp: 'DDOT: Text intersection to find active bus times Info: 888.849.6231 or detroit@codeforamerica.org Msg&data rates may apply Reply STOP to cancel 2 msg/request',
