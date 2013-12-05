@@ -1,6 +1,10 @@
 /*jslint node: true, indent: 2, sloppy: true, white: true, vars: true */
 
 /*
+ * DEPRECATED
+ * Use geocoder-yboss instead.
+ *
+ *
  * Geocode functionality using the Yahoo Placefinder geocoder
  */
 
