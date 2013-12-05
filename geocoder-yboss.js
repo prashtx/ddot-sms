@@ -10,7 +10,6 @@ var OAuth = require('oauth');
 var request = require('request');
 var url = require('url');
 
-// var apiUrl = 'http://where.yahooapis.com/geocode';
 var geoSearchUrl = 'https://yboss.yahooapis.com/geo/placefinder';
 var webSearchUrl = 'https://yboss.yahooapis.com/ysearch/web';
 
@@ -27,7 +26,6 @@ module.exports = (function () {
   self.code = function (line1, line2) {
     var urlObj = url.parse(geoSearchUrl);
     urlObj.query = {
-      appid: appId,
       start: start.toString(),
       count: count.toString(),
       flags: flags,
@@ -37,21 +35,23 @@ module.exports = (function () {
 
     var def = Q.defer();
 
-    var oa = new OAuth.OAuth(webSearchUrl, geoSearchUrl , consumerKey, consumerSecret, "1.0", null, "HMAC-SHA1");
+    var oa = new OAuth.OAuth(webSearchUrl, geoSearchUrl , key, secret, "1.0", null, "HMAC-SHA1");
     oa.setClientOptions({ requestTokenHttpMethod: 'GET' });
-    oa.getProtectedResource(url.format(urlObj), "GET", '','', function(error, body, response) {
-      if (error || resp.statusCode !== 200) {
-        def.reject(error || new Error('Received status: ' + resp.statusCode));
+    oa.getProtectedResource(url.format(urlObj), "GET", '', '', function(error, body, response) {
+      if (error || response.statusCode !== 200) {
+        def.reject(error || new Error('Received status: ' + response.statusCode));
         return;
       }
 
       try {
         var data = JSON.parse(body);
+        data = data.bossresponse.placefinder;
+
         var coords = {
-          lat: data.ResultSet.Results[0].latitude,
-          lon: data.ResultSet.Results[0].longitude,
+          lat: data.results[0].latitude,
+          lon: data.results[0].longitude,
           meta: {
-            quality: data.ResultSet.Results[0].quality,
+            quality: data.results[0].quality,
             service: 'Yahoo',
             line2: line2
           }
