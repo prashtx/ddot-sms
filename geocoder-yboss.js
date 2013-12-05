@@ -1,19 +1,21 @@
 /*jslint node: true, indent: 2, sloppy: true, white: true, vars: true */
 
 /*
- * DEPRECATED
- * Use geocoder-yboss instead.
- *
- *
  * Geocode functionality using the Yahoo Placefinder geocoder
+ * Now powered by Yahoo BOSS
  */
 
+var Q = require('q');
+var OAuth = require('oauth');
 var request = require('request');
 var url = require('url');
-var Q = require('q');
 
-var apiUrl = 'http://where.yahooapis.com/geocode';
-var appId = process.env.YDN_KEY || '';
+var geoSearchUrl = 'https://yboss.yahooapis.com/geo/placefinder';
+var webSearchUrl = 'https://yboss.yahooapis.com/ysearch/web';
+
+var key = process.env.YBOSS_KEY || '';
+var secret = process.env.YBOSS_SECRET || '';
+
 var start = 0;
 var count = 1;
 var flags = 'J';
@@ -22,9 +24,8 @@ module.exports = (function () {
   var self = {};
 
   self.code = function (line1, line2) {
-    var urlObj = url.parse(apiUrl);
+    var urlObj = url.parse(geoSearchUrl);
     urlObj.query = {
-      appid: appId,
       start: start.toString(),
       count: count.toString(),
       flags: flags,
@@ -33,19 +34,24 @@ module.exports = (function () {
     };
 
     var def = Q.defer();
-    request.get(url.format(urlObj), function(error, resp, body) {
-      if (error || resp.statusCode !== 200) {
-        def.reject(error || new Error('Received status: ' + resp.statusCode));
+
+    var oa = new OAuth.OAuth(webSearchUrl, geoSearchUrl , key, secret, "1.0", null, "HMAC-SHA1");
+    oa.setClientOptions({ requestTokenHttpMethod: 'GET' });
+    oa.getProtectedResource(url.format(urlObj), "GET", '', '', function(error, body, response) {
+      if (error || response.statusCode !== 200) {
+        def.reject(error || new Error('Received status: ' + response.statusCode));
         return;
       }
 
       try {
         var data = JSON.parse(body);
+        data = data.bossresponse.placefinder;
+
         var coords = {
-          lat: data.ResultSet.Results[0].latitude,
-          lon: data.ResultSet.Results[0].longitude,
+          lat: data.results[0].latitude,
+          lon: data.results[0].longitude,
           meta: {
-            quality: data.ResultSet.Results[0].quality,
+            quality: data.results[0].quality,
             service: 'Yahoo',
             line2: line2
           }
@@ -59,6 +65,7 @@ module.exports = (function () {
         def.reject(e);
       }
     });
+
 
     return def.promise;
   };

@@ -12,7 +12,7 @@ var request = require('request');
 var url = require('url');
 var Q = require('q');
 
-var yahoo = require('./geocoder-yahoo.js');
+var yahoo = require('./geocoder-yboss.js');
 var nominatim = require('./geocoder-nominatum.js');
 var google = require('./geocoder-google.js');
 var cache = require('./geocoder-cache.js');
