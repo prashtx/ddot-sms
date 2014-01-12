@@ -403,6 +403,11 @@ module.exports = (function () {
       return Q.resolve(Strings.NotRunning);
     }
 
+    // If we're working on the system, let people know.
+    if (process.env.MAINTENANCE) {
+      return Q.resolve(Strings.Maintenance);
+    }
+
     // Look for a greeting or shot-in-the-dark message.
     if (keywordMatches(greetings, sms)) {
       return Q.resolve(Strings.Greeting);
