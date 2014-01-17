@@ -135,7 +135,6 @@ module.exports = (function () {
       if (cachedCoords !== null) {
         console.log('Geocoder: using cache');
         metrics.geocoder('Cache');
-        metrics.cacheHit();
         return cachedCoords;
       }
 

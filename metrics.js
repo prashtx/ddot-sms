@@ -44,10 +44,6 @@ var metrics = {
     record('NO USER RECORDED', 'Cache Miss');
   },
 
-  cacheHit: function () {
-    record('NO USER RECORDED', 'Cache Hit');
-  },
-
   geocoder: function (geocoder) {
     record('NO USER RECORDED', 'Geocoder', { 'geocoder': geocoder} );
   }
