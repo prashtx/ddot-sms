@@ -34,7 +34,7 @@ module.exports = (function () {
       // Check if the Yahoo Placefinder result meets the quality bar.
       if (coords.meta.quality >= minYahooQuality) {
         console.log('Geocoder: using Yahoo Placefinder');
-        metrics.geocoder('Geocoder', { geocoder: 'Yahoo'});
+        metrics.geocoder('Yahoo');
         // Add to cache.
         cache.add(line1, detroit, coords);
         return coords;
@@ -79,7 +79,7 @@ module.exports = (function () {
       return nominatim.code(line1, detroit)
       .then(function (coords) {
         console.log('Geocoder: using Nominatim');
-        metrics.geocoder('Geocoder', { geocoder: 'Nominatim'});
+        metrics.geocoder('Nominatim');
         return coords;
       })
       .fail(function (reason) {
@@ -96,7 +96,7 @@ module.exports = (function () {
     return google.code(line1, detroit).then(function (coords) {
       cache.add(line1, detroit, coords);
       console.log('Geocoder: using Google Maps');
-      metrics.geocoder('Geocoder', { geocoder: 'Google'});
+      metrics.geocoder('Google');
       return coords;
     })
     .fail(function (reason) {
@@ -109,7 +109,7 @@ module.exports = (function () {
           // time.
           cache.add(line1, detroit, coords);
           console.log('Geocoder: using Google Maps Dearborn');
-          metrics.geocoder('Geocoder', { geocoder: 'Google Dearborn'});
+          metrics.geocoder('Google Dearborn');
           return coords;
         })
         .fail(function (reason) {
@@ -134,7 +134,7 @@ module.exports = (function () {
     return cache.get(line1, detroit).then(function (cachedCoords) {
       if (cachedCoords !== null) {
         console.log('Geocoder: using cache');
-        metrics.geocoder('Geocoder', { geocoder: 'Cache'});
+        metrics.geocoder('Cache');
         metrics.cacheHit();
         return cachedCoords;
       }
