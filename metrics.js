@@ -18,36 +18,39 @@ function kissHandler(err) {
   }
 }
 
-function record(user, event, callback) {
+function record(user, event, properties) {
   // Ignore the default user ID, which we use for testing
   if (user === '0') {
     return;
   }
 
-  if (callback === undefined) {
-    callback = kissHandler;
-  }
-
-  kissClient.record(user, event, callback);
+  kissClient.record(user, event, properties, kissHandler);
 }
 
 var metrics = {
   message: function (user) {
-    record(user, 'Sent Message', kissHandler);
+    record(user, 'Sent Message');
   },
 
   conversationContinue: function (user) {
-    record(user, 'Continued Conversation', kissHandler);
+    record(user, 'Continued Conversation');
   },
 
   stopID: function (user) {
-    record(user, 'Sent Stop ID', kissHandler);
+    record(user, 'Sent Stop ID');
   },
 
   cacheMiss: function () {
-    record('NO USER RECORDED', 'Cache Miss', kissHandler);
-  }
+    record('NO USER RECORDED', 'Cache Miss');
+  },
 
+  cacheHit: function () {
+    record('NO USER RECORDED', 'Cache Hit');
+  },
+
+  geocoder: function (geocoder) {
+    record('NO USER RECORDED', 'Geocoder', { 'geocoder': geocoder} );
+  }
 };
 
 if (kissKey !== undefined) {
