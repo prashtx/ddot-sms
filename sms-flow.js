@@ -38,6 +38,8 @@ var helpKeywords = [
 
 var stopKeyword = 'STOP';
 
+var identKeyword = 'MYBUS';
+
 function keywordMatches(keyword, str) {
   function check(kw) {
     var s = str.trimLeft();
@@ -391,6 +393,11 @@ module.exports = (function () {
     // Look for the short code STOP keyword.
     if (keywordMatches(stopKeyword, sms)) {
       return Q.resolve(Strings.ShortCodeStop);
+    }
+
+    // Look for the short code MYBUS keyword.
+    if (keywordMatches(identKeyword, sms)) {
+      return Q.resolve(Strings.ShortCodeMyBus);
     }
     
     // Look for the test keyword.
