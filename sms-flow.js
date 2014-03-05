@@ -40,6 +40,8 @@ var stopKeyword = 'STOP';
 
 var identKeyword = 'MYBUS';
 
+var dummyFlowKeyword = 'Woodward and McWarrenson';
+
 function keywordMatches(keyword, str) {
   function check(kw) {
     var s = str.trimLeft();
@@ -398,6 +400,11 @@ module.exports = (function () {
     // Look for the short code MYBUS keyword.
     if (keywordMatches(identKeyword, sms)) {
       return Q.resolve(Strings.ShortCodeMyBus);
+    }
+    
+    // Look for the short code test flow keyword.
+    if (keywordMatches(dummyFlowKeyword, sms)) {
+      return Q.resolve(Strings.ShortCodeDummyFlow);
     }
     
     // Look for the test keyword.
