@@ -145,7 +145,7 @@ module.exports = (function () {
         text: 'UPDATE geocoder_cache SET timestamp=$1, count=$2 WHERE cacheKey=$3',
         values: [new Date(), count + 1, cacheKey],
         name: 'updateTimeCount'
-      }).end();
+      }).done();
 
       // Resolve with the coordinates.
       return {
