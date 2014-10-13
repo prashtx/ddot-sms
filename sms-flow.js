@@ -238,6 +238,12 @@ function makeArrivalString(arrivals, now, max, stopName) {
     return entry.arrival > now;
   });
 
+  // Filter out scheduled buses
+  // (they probably aren't actually on the road)
+  arrivals = arrivals.filter(function (entry) {
+    return entry.predicted;
+  });
+
   // Make the stop name legible.
   if (stopName === undefined) {
     stopName = max;
@@ -401,12 +407,12 @@ module.exports = (function () {
     if (keywordMatches(identKeyword, sms)) {
       return Q.resolve(Strings.ShortCodeMyBus);
     }
-    
+
     // Look for the short code test flow keyword.
     if (keywordMatches(dummyFlowKeyword, sms)) {
       return Q.resolve(Strings.ShortCodeDummyFlow);
     }
-    
+
     // Look for the test keyword.
     if (keywordMatches(keywords.test, sms)) {
       return handleTestCommand(sms.substring(keywords.test.length));
