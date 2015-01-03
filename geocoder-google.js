@@ -9,7 +9,7 @@ var url = require('url');
 var Q = require('q');
 
 var apiUrl = 'http://maps.googleapis.com/maps/api/geocode/json';
-var minPause = 1000;
+var minPause = 200;
 
 module.exports = (function () {
   var self = {};
@@ -20,7 +20,6 @@ module.exports = (function () {
     var urlObj = url.parse(apiUrl);
     // TODO: use viewport biasing with the bounds parameter
     urlObj.query = {
-      sensor: false,
       address: line1 + ', ' + line2
     };
 
