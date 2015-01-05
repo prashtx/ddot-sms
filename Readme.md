@@ -1,0 +1,4 @@
+## Tests
+
+Just run `mocha`
+
