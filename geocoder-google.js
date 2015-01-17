@@ -25,77 +25,78 @@ module.exports = (function () {
 
     var def = Q.defer();
 
-    // See if we've queried the API too recently
-    if (Date.now() - lastQueryTime < minPause) {
-      def.reject({
-        name: 'RateLimitError',
-        message: 'Exceeded proactive rate check'
-      });
-      return def.promise;
+    // See if we've queried the API too recently, and set an appropriate timeout
+    var timeElapsed = Date.now() - lastQueryTime;
+    var timeout = 0;
+    if (timeElapsed < minPause) {
+      timeout = minPause - timeElapsed;
     }
 
-    // Update lastQueryTime before any asynchronous calls
-    lastQueryTime = Date.now();
+    lastQueryTime = Date.now() + timeout;
 
-    request.get(url.format(urlObj), function(error, resp, body) {
-      if (error || resp.statusCode !== 200) {
-        def.reject(error || new Error('Received status: ' + resp.statusCode));
-        return;
-      }
+    function query() {
+      request.get(url.format(urlObj), function(error, resp, body) {
+        if (error || resp.statusCode !== 200) {
+          def.reject(error || new Error('Received status: ' + resp.statusCode));
+          return;
+        }
 
-      try {
-        var data = JSON.parse(body);
-        if (data.status === 'OK') {
-          var location = data.results[0].geometry.location;
-          // See if Google has returned it's default Detroit location, which
-          // most likely indicates that it did not understand the
-          // address/intersection.
-          if (location.lat === 42.331427 && location.lng === -83.0457538) {
+        try {
+          var data = JSON.parse(body);
+          if (data.status === 'OK') {
+            var location = data.results[0].geometry.location;
+            // See if Google has returned it's default Detroit location, which
+            // most likely indicates that it did not understand the
+            // address/intersection.
+            if (location.lat === 42.331427 && location.lng === -83.0457538) {
+              def.reject({
+                name: 'BadLocationError',
+                message: 'Google gave us the default Detroit location'
+              });
+            } else if (location.lat === 42.3222599 && location.lng === -83.17631449999999) {
+              def.reject({
+                name: 'BadLocationError',
+                message: 'Google gave us the default Dearborn location'
+              });
+            } else if (location.lat < 42.26923 || location.lat > 42.465563 || location.lng > -82.907982 || location.lng < -83.268471) {
+              def.reject({
+                name: 'BadLocationError',
+                message: 'Google gave us an out-of-bounds location'
+              });
+            } else {
+              var coords = {
+                lat: location.lat,
+                lon: location.lng,
+                meta: {
+                  service: 'Google'
+                }
+              };
+              def.resolve(coords);
+            }
+          } else if (data.status === 'OVER_QUERY_LIMIT') {
+            // We've been rate-limited by Google
             def.reject({
-              name: 'BadLocationError',
-              message: 'Google gave us the default Detroit location'
-            });
-          } else if (location.lat === 42.3222599 && location.lng === -83.17631449999999) {
-            def.reject({
-              name: 'BadLocationError',
-              message: 'Google gave us the default Dearborn location'
-            });
-          } else if (location.lat < 42.26923 || location.lat > 42.465563 || location.lng > -82.907982 || location.lng < -83.268471) {
-            def.reject({
-              name: 'BadLocationError',
-              message: 'Google gave us an out-of-bounds location'
+              name: 'RateLimitError',
+              message: 'Exceeded Google rate limit'
             });
           } else {
-            var coords = {
-              lat: location.lat,
-              lon: location.lng,
-              meta: {
-                service: 'Google'
-              }
-            };
-            def.resolve(coords);
+            def.reject(data.status);
           }
-        } else if (data.status === 'OVER_QUERY_LIMIT') {
-          // We've been rate-limited by Google
-          def.reject({
-            name: 'RateLimitError',
-            message: 'Exceeded Google rate limit'
-          });
-        } else {
-          def.reject(data.status);
+        } catch (e) {
+          console.log('Caught exception getting data from Google Maps:');
+          console.log(e.message);
+          console.log('Google response body:');
+          console.log(body);
+          def.reject(e);
         }
-      } catch (e) {
-        console.log('Caught exception getting data from Google Maps:');
-        console.log(e.message);
-        console.log('Google response body:');
-        console.log(body);
-        def.reject(e);
-      }
 
-      // Update lastQueryTime again, to be conservative, now that the query has
-      // finished.
-      lastQueryTime = Date.now();
-    });
+        // Update lastQueryTime again, to be conservative, now that the query has
+        // finished.
+        lastQueryTime = Date.now();
+      });
+    }
+
+    setTimeout(query, timeout);
 
     return def.promise;
   };
