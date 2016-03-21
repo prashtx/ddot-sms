@@ -13,6 +13,7 @@ var url = require('url');
 var Q = require('q');
 
 var yahoo = require('./geocoder-yboss.js');
+var mapzen = require('./geocoder-mapzen.js');
 var nominatim = require('./geocoder-nominatum.js');
 var google = require('./geocoder-google.js');
 var cache = require('./geocoder-cache.js');
@@ -73,7 +74,7 @@ module.exports = (function () {
       });
     })
     .fail(function (reason) {
-      console.log('Yahoo Placefinder failed: ' + reason.message);
+      console.log('Yahoo failed: ' + reason.message);
       // Yahoo Placefinder failed, so use Nominatim.
       return nominatim.code(line1, detroit)
       .then(function (coords) {
@@ -87,6 +88,19 @@ module.exports = (function () {
         throw reason;
       });
     });
+  };
+
+  self.mapzenCode = function(line1) {
+    return mapzen.code(line1)
+      .then(function (coords) {
+        // Don't cache mapzen results for now.
+        // cache.add(line1, detroit, coords);
+        return coords;
+      })
+      .fail(function(reason) {
+        console.log('Mapzen failed: ' + reason.message);
+        return self.comboCode(line1);
+      });
   };
 
   self.googleCode = function (line1) {
@@ -113,14 +127,13 @@ module.exports = (function () {
           if (reason.name === 'BadLocationError') {
             throw reason;
           }
-          // We've used Google too recently or something went wrong. Try the
-          // Yahoo/Nominatum combo.
-          return self.comboCode(line1);
+          // We've used Google too recently or something went wrong. Try mapzen.
+          return self.mapzenCode(line1);
         });
       }
-      // We've used Google too recently or something went wrong. Try the
-      // Yahoo/Nominatum combo.
-      return self.comboCode(line1);
+
+      // We've used Google too recently or something went wrong. Try mapzen.
+      return self.mapzenCode(line1);
     });
   };
 
