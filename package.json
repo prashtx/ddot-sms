@@ -16,7 +16,7 @@
     "tropo-webapi": "1.0.x"
   },
   "devDependencies": {
-    "mocha": "1.15.1",
-    "should": "2.1.1"
+    "mocha": "2.4",
+    "should": "8.2"
   }
 }
