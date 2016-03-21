@@ -9,7 +9,7 @@ describe('mapzen', function(){
       coords.should.have.property('lon');
       coords.should.have.property('meta');
 
-      (coords.meta.confidence).should.be.aboveOrEqual(0.87);
+      (coords.meta.quality).should.be.aboveOrEqual(0.87);
       done();
      }, function(reason){
       should.not.exist(reason);

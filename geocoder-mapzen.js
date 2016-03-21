@@ -57,7 +57,7 @@ module.exports = (function () {
           lon: data.features[0].geometry.coordinates[0],
           meta: {
             service: 'Mapzen',
-            confidence: data.features[0].properties.confidence
+            quality: data.features[0].properties.confidence
           }
         };
         def.resolve(coords);
