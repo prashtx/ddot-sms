@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "engines": {
     "node": "0.8.x",
-    "npm": "1.1.x"
+    "npm": "1.4.x"
   },
   "dependencies": {
     "crc": "0.2.0",
