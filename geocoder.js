@@ -95,6 +95,7 @@ module.exports = (function () {
       .then(function (coords) {
         // Don't cache mapzen results for now.
         // cache.add(line1, detroit, coords);
+        console.log('Geocoder: using Mapzen');
         return coords;
       })
       .fail(function(reason) {
