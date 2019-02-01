@@ -10,19 +10,19 @@ function record(user, event, callback) {}
 
 var metrics = {
   message: function(user) {
-    record(user, "Sent Message", kissHandler);
+    record(user, "Sent Message");
   },
 
   conversationContinue: function(user) {
-    record(user, "Continued Conversation", kissHandler);
+    record(user, "Continued Conversation");
   },
 
   stopID: function(user) {
-    record(user, "Sent Stop ID", kissHandler);
+    record(user, "Sent Stop ID");
   },
 
   cacheMiss: function() {
-    record("NO USER RECORDED", "Cache Miss", kissHandler);
+    record("NO USER RECORDED", "Cache Miss");
   }
 };
 

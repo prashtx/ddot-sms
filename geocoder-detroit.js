@@ -1,8 +1,7 @@
 /*jslint node: true, indent: 2, sloppy: true, white: true, vars: true */
 
 /*
- * Geocode functionality using the Yahoo Placefinder geocoder
- * Now powered by Yahoo BOSS
+ * The City of Detroit's geocoder
  */
 
 var Q = require("q");
@@ -18,7 +17,7 @@ var geoSearchUrl =
 module.exports = (function() {
   var self = {};
 
-  self.code = function(line1, line2) {
+  self.code = function(line1) {
     var urlObj = url.parse(geoSearchUrl);
     urlObj.query = {
       SingleLine: line1,

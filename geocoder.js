@@ -8,6 +8,7 @@
  */
 
 var google = require("./geocoder-google.js");
+var detroitGeocoder = require("./geocoder-detroit.js");
 var cache = require("./geocoder-cache.js");
 var metrics = require("./metrics.js");
 
@@ -21,7 +22,7 @@ module.exports = (function() {
   var self = {};
 
   self.detroitCode = function(line1) {
-    return detroit
+    return detroitGeocoder
       .code(line1)
       .then(function(coords) {
         cache.add(line1, detroit, coords);
