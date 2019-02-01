@@ -11,7 +11,6 @@
     "pg": "0.8.x",
     "q": "0.8.x",
     "request": "2.9.x",
-    "tropo-webapi": "1.0.x"
   },
   "devDependencies": {
     "mocha": "2.4",

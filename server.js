@@ -2,7 +2,6 @@
 
 var http = require('http');
 var express = require('express');
-var tropowebapi = require('tropo-webapi');
 var request = require('request');
 var util = require('util');
 var http = require('http');
@@ -84,67 +83,6 @@ app.post('/twilio', function (req, res) {
   });
 });
 
-app.post('/tropo-switch', function (req, res) {
-  console.log('Got a message to a deprecated number. Sending the deprecation message.');
-  var tropo = new tropowebapi.TropoWebAPI();
-  tropo.say(Strings.NumberSwitch);
-  res.send(tropowebapi.TropoJSON(tropo));
-});
-
-app.post('/tropo', function (req, res) {
-  var startTime = Date.now();
-  var tropo = new tropowebapi.TropoWebAPI();
-  res.setHeader('Content-Type', 'application/json');
-
-  var session = req.body.session;
-  if (req.body.session === undefined) {
-    res.send(400);
-    return;
-  }
-  if (session.from === undefined) {
-    res.send(400);
-    return;
-  }
-
-  var to;
-  if (session.to) {
-    to = session.to.id || '';
-  } else {
-    to = '';
-  }
-  // Mask the user's phone number
-  var from = '0';
-  if (session.from.id !== undefined) {
-    from = crc.hex32(crc.crc32(session.from.id));
-  }
-  var initialText = session.initialText.trim();
-
-  var logEntry = logger.makeEntry(from);
-
-  console.log('\nInbound message info:');
-  console.log(JSON.stringify({ from: from, to: to, body: initialText }));
-
-  smsflow.respondToSms(initialText, from, logEntry)
-  .then(function (message) {
-    tropo.say(message);
-    var jsonOut = tropowebapi.TropoJSON(tropo);
-    console.log('Outbound message info:');
-    console.log(jsonOut);
-    console.log('Message length: ' + message.length);
-    console.log('Processing time: ' + (Date.now() - startTime));
-    res.send(jsonOut);
-  })
-  .fail(function (reason) {
-    console.log(reason);
-    console.log(reason.stack);
-    tropo.say(Strings.GenericFailMessage);
-    var jsonOut = tropowebapi.TropoJSON(tropo);
-    console.log('Outbound message info:');
-    console.log(jsonOut);
-    console.log('Processing time: ' + (Date.now() - startTime));
-    res.send(jsonOut);
-  });
-});
 
 var port = process.env.PORT || 3000;
 server.listen(port, function() {
