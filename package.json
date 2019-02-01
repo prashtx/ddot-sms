@@ -7,7 +7,6 @@
   "dependencies": {
     "crc": "0.2.0",
     "express": "3.0.x",
-    "kissmetrics": "0.0.4",
     "oauth": "0.9.10",
     "pg": "0.8.x",
     "q": "0.8.x",
