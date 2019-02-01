@@ -2,18 +2,15 @@
   "name": "ddot-sms",
   "version": "0.0.1",
   "engines": {
-    "node": "0.8.x",
-    "npm": "1.4.x"
+    "node": "10.x"
   },
   "dependencies": {
     "crc": "0.2.0",
-    "express": "3.0.x",
-    "kissmetrics": "0.0.4",
-    "oauth": "0.9.10",
-    "pg": "0.8.x",
+    "express": "4.x",
+    "multer": "^1.4.1",
+    "pg": "7.8.0",
     "q": "0.8.x",
-    "request": "2.9.x",
-    "tropo-webapi": "1.0.x"
+    "request": "2.9.x"
   },
   "devDependencies": {
     "mocha": "2.4",
